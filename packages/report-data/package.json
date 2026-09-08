@@ -1,0 +1,25 @@
+{
+  "name": "@report/data",
+  "version": "1.0.0",
+  "description": "Data binding, data sources, and context resolver for reports",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch"
+  },
+  "dependencies": {
+    "@report/schema": "workspace:*",
+    "@report/expression": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.3"
+  }
+}

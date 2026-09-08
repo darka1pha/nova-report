@@ -1,0 +1,165 @@
+{
+  "version": "1.0",
+  "name": "Sales Summary Report",
+  "title": "Quarterly Sales & Performance Report",
+  "description": "Multi-region sales performance report with aggregated revenue and margins",
+  "createdAt": "2026-09-08T10:00:00.000Z",
+  "page": {
+    "width": 210,
+    "height": 297,
+    "unit": "mm",
+    "orientation": "portrait",
+    "margins": {
+      "top": 15,
+      "right": 15,
+      "bottom": 15,
+      "left": 15
+    },
+    "direction": "ltr"
+  },
+  "dataSources": [
+    {
+      "name": "sales",
+      "type": "json",
+      "data": {
+        "quarter": "Q3 2026",
+        "generatedAt": "September 8, 2026",
+        "author": "Global Analytics Team",
+        "regions": [
+          { "region": "North America", "units": 4520, "revenue": 1285000, "target": 1200000, "growth": "18.4%" },
+          { "region": "Europe & UK", "units": 3810, "revenue": 945000, "target": 950000, "growth": "12.1%" },
+          { "region": "Asia-Pacific", "units": 6120, "revenue": 1640000, "target": 1500000, "growth": "26.8%" },
+          { "region": "Latin America", "units": 1450, "revenue": 380000, "target": 350000, "growth": "9.5%" },
+          { "region": "Middle East & Africa", "units": 980, "revenue": 290000, "target": 260000, "growth": "14.2%" }
+        ],
+        "totalRevenue": 4540000,
+        "totalUnits": 16880,
+        "averageGrowth": "16.2%"
+      }
+    }
+  ],
+  "parameters": [],
+  "variables": [],
+  "sections": [
+    {
+      "id": "sec-page-header",
+      "type": "pageHeader",
+      "name": "Report Header",
+      "height": 30,
+      "elements": [
+        {
+          "id": "elem-sales-title",
+          "type": "text",
+          "x": 0,
+          "y": 2,
+          "width": 120,
+          "height": 10,
+          "text": "Executive Sales & Performance Report",
+          "style": { "fontSize": 15, "fontWeight": "bold", "color": "#0f172a" }
+        },
+        {
+          "id": "elem-sales-sub",
+          "type": "text",
+          "x": 0,
+          "y": 12,
+          "width": 120,
+          "height": 6,
+          "text": "Period: {{sales.quarter}} • Generated: {{sales.generatedAt}}",
+          "style": { "fontSize": 8.5, "color": "#64748b" }
+        },
+        {
+          "id": "elem-header-line",
+          "type": "shape",
+          "shapeType": "line",
+          "x": 0,
+          "y": 24,
+          "width": 180,
+          "height": 0.5,
+          "strokeColor": "#cbd5e1",
+          "strokeWidth": 0.5
+        }
+      ]
+    },
+    {
+      "id": "sec-detail",
+      "type": "detail",
+      "name": "Regional Summary Table",
+      "height": 80,
+      "elements": [
+        {
+          "id": "elem-sales-table",
+          "type": "table",
+          "name": "Sales Table",
+          "x": 0,
+          "y": 5,
+          "width": 180,
+          "height": 60,
+          "dataSource": "sales.regions",
+          "columns": [
+            { "id": "col-reg", "width": 55 },
+            { "id": "col-un", "width": 25 },
+            { "id": "col-rev", "width": 35 },
+            { "id": "col-tar", "width": 35 },
+            { "id": "col-grw", "width": 30 }
+          ],
+          "headerRows": [
+            {
+              "id": "sales-h1",
+              "height": 8,
+              "isHeader": true,
+              "cells": [
+                { "id": "sh-reg", "text": "Region", "style": { "fontWeight": "bold", "backgroundColor": "#0f172a", "color": "#ffffff", "textAlign": "left", "padding": { "top": 2, "right": 4, "bottom": 2, "left": 4 } } },
+                { "id": "sh-un", "text": "Units Sold", "style": { "fontWeight": "bold", "backgroundColor": "#0f172a", "color": "#ffffff", "textAlign": "right", "padding": { "top": 2, "right": 4, "bottom": 2, "left": 4 } } },
+                { "id": "sh-rev", "text": "Revenue ($)", "style": { "fontWeight": "bold", "backgroundColor": "#0f172a", "color": "#ffffff", "textAlign": "right", "padding": { "top": 2, "right": 4, "bottom": 2, "left": 4 } } },
+                { "id": "sh-tar", "text": "Target ($)", "style": { "fontWeight": "bold", "backgroundColor": "#0f172a", "color": "#ffffff", "textAlign": "right", "padding": { "top": 2, "right": 4, "bottom": 2, "left": 4 } } },
+                { "id": "sh-grw", "text": "YoY Growth", "style": { "fontWeight": "bold", "backgroundColor": "#0f172a", "color": "#ffffff", "textAlign": "right", "padding": { "top": 2, "right": 4, "bottom": 2, "left": 4 } } }
+              ]
+            }
+          ],
+          "bodyRows": [
+            {
+              "id": "sales-b1",
+              "height": 7.5,
+              "cells": [
+                { "id": "sb-reg", "text": "{{item.region}}", "style": { "textAlign": "left", "padding": { "top": 1.5, "right": 4, "bottom": 1.5, "left": 4 }, "borders": { "bottom": { "style": "solid", "width": 0.2, "color": "#e2e8f0" } } } },
+                { "id": "sb-un", "text": "{{item.units}}", "style": { "textAlign": "right", "padding": { "top": 1.5, "right": 4, "bottom": 1.5, "left": 4 }, "borders": { "bottom": { "style": "solid", "width": 0.2, "color": "#e2e8f0" } } } },
+                { "id": "sb-rev", "text": "{{formatCurrency(item.revenue)}}", "style": { "textAlign": "right", "padding": { "top": 1.5, "right": 4, "bottom": 1.5, "left": 4 }, "borders": { "bottom": { "style": "solid", "width": 0.2, "color": "#e2e8f0" } } } },
+                { "id": "sb-tar", "text": "{{formatCurrency(item.target)}}", "style": { "textAlign": "right", "padding": { "top": 1.5, "right": 4, "bottom": 1.5, "left": 4 }, "borders": { "bottom": { "style": "solid", "width": 0.2, "color": "#e2e8f0" } } } },
+                { "id": "sb-grw", "text": "{{item.growth}}", "style": { "textAlign": "right", "fontWeight": "bold", "color": "#16a34a", "padding": { "top": 1.5, "right": 4, "bottom": 1.5, "left": 4 }, "borders": { "bottom": { "style": "solid", "width": 0.2, "color": "#e2e8f0" } } } }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sec-page-footer",
+      "type": "pageFooter",
+      "name": "Page Footer",
+      "height": 12,
+      "elements": [
+        {
+          "id": "elem-pf-line",
+          "type": "shape",
+          "shapeType": "line",
+          "x": 0,
+          "y": 0,
+          "width": 180,
+          "height": 0.5,
+          "strokeColor": "#e2e8f0",
+          "strokeWidth": 0.5
+        },
+        {
+          "id": "elem-pf-text",
+          "type": "text",
+          "x": 0,
+          "y": 3,
+          "width": 180,
+          "height": 6,
+          "text": "Confidential • Internal Use Only • Page {{pageNumber}} of {{totalPages}}",
+          "style": { "fontSize": 7.5, "color": "#94a3b8", "textAlign": "center" }
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,26 @@
+{
+  "name": "@report/exporter-html",
+  "version": "1.0.0",
+  "description": "Standalone print-ready HTML/CSS report exporter",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch"
+  },
+  "dependencies": {
+    "@report/schema": "workspace:*",
+    "@report/core": "workspace:*",
+    "@report/exporter": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.3"
+  }
+}

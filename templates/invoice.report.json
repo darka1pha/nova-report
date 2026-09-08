@@ -1,0 +1,537 @@
+{
+  "version": "1.0",
+  "name": "Invoice",
+  "title": "Commercial Invoice",
+  "description": "Standard multi-page commercial invoice template with dynamic items, taxes, totals, and barcodes",
+  "createdAt": "2026-09-08T10:00:00.000Z",
+  "page": {
+    "width": 210,
+    "height": 297,
+    "unit": "mm",
+    "orientation": "portrait",
+    "margins": {
+      "top": 15,
+      "right": 15,
+      "bottom": 15,
+      "left": 15
+    },
+    "direction": "ltr"
+  },
+  "dataSources": [
+    {
+      "name": "invoice",
+      "type": "json",
+      "data": {
+        "invoiceNumber": "INV-2026-089",
+        "date": "2026-09-08",
+        "dueDate": "2026-10-08",
+        "company": {
+          "name": "Acme Technologies Global Ltd.",
+          "address": "100 Innovation Way, Suite 400",
+          "city": "San Francisco, CA 94105",
+          "email": "billing@acmetech.com",
+          "phone": "+1 (555) 019-2834"
+        },
+        "customer": {
+          "name": "Apex Enterprise Solutions",
+          "contact": "Jane Doe, Director of IT",
+          "address": "742 Evergreen Parkway",
+          "city": "Seattle, WA 98101",
+          "taxId": "US-987654321"
+        },
+        "items": [
+          { "description": "Cloud Hosting Enterprise Cluster (Q3)", "quantity": 3, "unitPrice": 1250.00, "total": 3750.00 },
+          { "description": "Dedicated Database Instances (High-IOPS)", "quantity": 2, "unitPrice": 850.00, "total": 1700.00 },
+          { "description": "Global CDN Traffic & Accelerated Edge (TB)", "quantity": 15, "unitPrice": 45.00, "total": 675.00 },
+          { "description": "24/7 Priority Support & SLA Assurance", "quantity": 1, "unitPrice": 1500.00, "total": 1500.00 },
+          { "description": "Security Audit & Penetration Testing Report", "quantity": 1, "unitPrice": 2200.00, "total": 2200.00 },
+          { "description": "Custom API Integrations & Webhook Setup", "quantity": 8, "unitPrice": 175.00, "total": 1400.00 }
+        ],
+        "subtotal": 11225.00,
+        "taxRate": 0.085,
+        "taxAmount": 954.13,
+        "discount": 500.00,
+        "total": 11679.13,
+        "notes": "Thank you for your business. Payment is due within 30 days via Wire or Credit Card.",
+        "barcode": "INV2026089",
+        "verifyUrl": "https://billing.acmetech.com/verify/INV-2026-089"
+      }
+    }
+  ],
+  "parameters": [],
+  "variables": [
+    {
+      "name": "calculatedTotal",
+      "expression": "SUM(invoice.items.total)"
+    }
+  ],
+  "sections": [
+    {
+      "id": "sec-page-header",
+      "type": "pageHeader",
+      "name": "Page Header",
+      "height": 45,
+      "elements": [
+        {
+          "id": "elem-company-title",
+          "type": "text",
+          "x": 0,
+          "y": 0,
+          "width": 100,
+          "height": 10,
+          "text": "{{invoice.company.name}}",
+          "style": {
+            "fontFamily": "Arial",
+            "fontSize": 14,
+            "fontWeight": "bold",
+            "color": "#1e3a8a"
+          }
+        },
+        {
+          "id": "elem-company-addr",
+          "type": "text",
+          "x": 0,
+          "y": 10,
+          "width": 90,
+          "height": 18,
+          "text": "{{invoice.company.address}}\n{{invoice.company.city}}\n{{invoice.company.email}} | {{invoice.company.phone}}",
+          "multiline": true,
+          "style": {
+            "fontFamily": "Arial",
+            "fontSize": 8.5,
+            "color": "#4b5563",
+            "lineHeight": 1.3
+          }
+        },
+        {
+          "id": "elem-invoice-title",
+          "type": "text",
+          "x": 110,
+          "y": 0,
+          "width": 70,
+          "height": 12,
+          "text": "INVOICE",
+          "style": {
+            "fontFamily": "Arial",
+            "fontSize": 20,
+            "fontWeight": "bold",
+            "color": "#1e3a8a",
+            "textAlign": "right"
+          }
+        },
+        {
+          "id": "elem-invoice-meta",
+          "type": "text",
+          "x": 110,
+          "y": 12,
+          "width": 70,
+          "height": 18,
+          "text": "Invoice #: {{invoice.invoiceNumber}}\nDate: {{invoice.date}}\nDue Date: {{invoice.dueDate}}",
+          "multiline": true,
+          "style": {
+            "fontFamily": "Arial",
+            "fontSize": 9,
+            "color": "#374151",
+            "textAlign": "right",
+            "lineHeight": 1.3
+          }
+        },
+        {
+          "id": "elem-header-divider",
+          "type": "shape",
+          "shapeType": "line",
+          "x": 0,
+          "y": 38,
+          "width": 180,
+          "height": 0.5,
+          "strokeColor": "#cbd5e1",
+          "strokeWidth": 0.5
+        }
+      ]
+    },
+    {
+      "id": "sec-report-header",
+      "type": "reportHeader",
+      "name": "Bill To Section",
+      "height": 38,
+      "elements": [
+        {
+          "id": "elem-billto-box",
+          "type": "shape",
+          "shapeType": "rounded-rectangle",
+          "x": 0,
+          "y": 2,
+          "width": 180,
+          "height": 30,
+          "fillColor": "#f8fafc",
+          "strokeColor": "#e2e8f0",
+          "strokeWidth": 0.5,
+          "borderRadius": 2
+        },
+        {
+          "id": "elem-billto-label",
+          "type": "text",
+          "x": 4,
+          "y": 4,
+          "width": 50,
+          "height": 6,
+          "text": "BILLED TO:",
+          "style": {
+            "fontFamily": "Arial",
+            "fontSize": 8,
+            "fontWeight": "bold",
+            "color": "#64748b"
+          }
+        },
+        {
+          "id": "elem-billto-details",
+          "type": "text",
+          "x": 4,
+          "y": 10,
+          "width": 110,
+          "height": 18,
+          "text": "{{invoice.customer.name}}\nAttn: {{invoice.customer.contact}}\n{{invoice.customer.address}}, {{invoice.customer.city}}\nTax ID: {{invoice.customer.taxId}}",
+          "multiline": true,
+          "style": {
+            "fontFamily": "Arial",
+            "fontSize": 9,
+            "color": "#1e293b",
+            "lineHeight": 1.3
+          }
+        },
+        {
+          "id": "elem-qr",
+          "type": "qrcode",
+          "x": 150,
+          "y": 4,
+          "width": 24,
+          "height": 24,
+          "value": "{{invoice.verifyUrl}}",
+          "darkColor": "#1e3a8a",
+          "lightColor": "#ffffff"
+        }
+      ]
+    },
+    {
+      "id": "sec-detail",
+      "type": "detail",
+      "name": "Invoice Items Detail",
+      "height": 80,
+      "elements": [
+        {
+          "id": "elem-table-items",
+          "type": "table",
+          "name": "Line Items Table",
+          "x": 0,
+          "y": 2,
+          "width": 180,
+          "height": 70,
+          "dataSource": "invoice.items",
+          "repeatHeaderOnEveryPage": true,
+          "columns": [
+            { "id": "col-desc", "width": 95 },
+            { "id": "col-qty", "width": 25 },
+            { "id": "col-price", "width": 30 },
+            { "id": "col-total", "width": 30 }
+          ],
+          "headerRows": [
+            {
+              "id": "hdr-row-1",
+              "height": 8,
+              "isHeader": true,
+              "cells": [
+                {
+                  "id": "h-desc",
+                  "text": "Description",
+                  "style": {
+                    "fontSize": 8.5,
+                    "fontWeight": "bold",
+                    "color": "#ffffff",
+                    "backgroundColor": "#1e3a8a",
+                    "textAlign": "left",
+                    "padding": { "top": 2, "right": 4, "bottom": 2, "left": 4 }
+                  }
+                },
+                {
+                  "id": "h-qty",
+                  "text": "Qty",
+                  "style": {
+                    "fontSize": 8.5,
+                    "fontWeight": "bold",
+                    "color": "#ffffff",
+                    "backgroundColor": "#1e3a8a",
+                    "textAlign": "right",
+                    "padding": { "top": 2, "right": 4, "bottom": 2, "left": 4 }
+                  }
+                },
+                {
+                  "id": "h-price",
+                  "text": "Unit Price",
+                  "style": {
+                    "fontSize": 8.5,
+                    "fontWeight": "bold",
+                    "color": "#ffffff",
+                    "backgroundColor": "#1e3a8a",
+                    "textAlign": "right",
+                    "padding": { "top": 2, "right": 4, "bottom": 2, "left": 4 }
+                  }
+                },
+                {
+                  "id": "h-tot",
+                  "text": "Amount",
+                  "style": {
+                    "fontSize": 8.5,
+                    "fontWeight": "bold",
+                    "color": "#ffffff",
+                    "backgroundColor": "#1e3a8a",
+                    "textAlign": "right",
+                    "padding": { "top": 2, "right": 4, "bottom": 2, "left": 4 }
+                  }
+                }
+              ]
+            }
+          ],
+          "bodyRows": [
+            {
+              "id": "body-row-1",
+              "height": 7.5,
+              "cells": [
+                {
+                  "id": "b-desc",
+                  "text": "{{item.description}}",
+                  "style": {
+                    "fontSize": 8.5,
+                    "textAlign": "left",
+                    "padding": { "top": 1.5, "right": 4, "bottom": 1.5, "left": 4 },
+                    "borders": {
+                      "bottom": { "style": "solid", "width": 0.2, "color": "#e2e8f0" }
+                    }
+                  }
+                },
+                {
+                  "id": "b-qty",
+                  "text": "{{item.quantity}}",
+                  "style": {
+                    "fontSize": 8.5,
+                    "textAlign": "right",
+                    "padding": { "top": 1.5, "right": 4, "bottom": 1.5, "left": 4 },
+                    "borders": {
+                      "bottom": { "style": "solid", "width": 0.2, "color": "#e2e8f0" }
+                    }
+                  }
+                },
+                {
+                  "id": "b-price",
+                  "text": "{{formatCurrency(item.unitPrice)}}",
+                  "style": {
+                    "fontSize": 8.5,
+                    "textAlign": "right",
+                    "padding": { "top": 1.5, "right": 4, "bottom": 1.5, "left": 4 },
+                    "borders": {
+                      "bottom": { "style": "solid", "width": 0.2, "color": "#e2e8f0" }
+                    }
+                  }
+                },
+                {
+                  "id": "b-tot",
+                  "text": "{{formatCurrency(item.total)}}",
+                  "style": {
+                    "fontSize": 8.5,
+                    "textAlign": "right",
+                    "padding": { "top": 1.5, "right": 4, "bottom": 1.5, "left": 4 },
+                    "borders": {
+                      "bottom": { "style": "solid", "width": 0.2, "color": "#e2e8f0" }
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sec-report-footer",
+      "type": "reportFooter",
+      "name": "Totals & Notes",
+      "height": 45,
+      "elements": [
+        {
+          "id": "elem-notes-label",
+          "type": "text",
+          "x": 0,
+          "y": 4,
+          "width": 100,
+          "height": 5,
+          "text": "Notes & Payment Terms:",
+          "style": { "fontSize": 8, "fontWeight": "bold", "color": "#64748b" }
+        },
+        {
+          "id": "elem-notes-text",
+          "type": "text",
+          "x": 0,
+          "y": 10,
+          "width": 105,
+          "height": 18,
+          "text": "{{invoice.notes}}",
+          "multiline": true,
+          "style": { "fontSize": 8.5, "color": "#475569", "lineHeight": 1.3 }
+        },
+        {
+          "id": "elem-barcode",
+          "type": "barcode",
+          "x": 0,
+          "y": 28,
+          "width": 60,
+          "height": 12,
+          "value": "{{invoice.barcode}}",
+          "format": "CODE128",
+          "includeText": true,
+          "barColor": "#1e3a8a"
+        },
+        {
+          "id": "elem-summary-box",
+          "type": "shape",
+          "shapeType": "rectangle",
+          "x": 115,
+          "y": 2,
+          "width": 65,
+          "height": 38,
+          "fillColor": "#f8fafc",
+          "strokeColor": "#e2e8f0",
+          "strokeWidth": 0.5
+        },
+        {
+          "id": "elem-subtotal-lbl",
+          "type": "text",
+          "x": 118,
+          "y": 5,
+          "width": 30,
+          "height": 6,
+          "text": "Subtotal:",
+          "style": { "fontSize": 8.5, "color": "#64748b" }
+        },
+        {
+          "id": "elem-subtotal-val",
+          "type": "text",
+          "x": 148,
+          "y": 5,
+          "width": 30,
+          "height": 6,
+          "text": "{{formatCurrency(invoice.subtotal)}}",
+          "style": { "fontSize": 8.5, "textAlign": "right", "fontWeight": "bold" }
+        },
+        {
+          "id": "elem-discount-lbl",
+          "type": "text",
+          "x": 118,
+          "y": 11,
+          "width": 30,
+          "height": 6,
+          "text": "Discount:",
+          "style": { "fontSize": 8.5, "color": "#64748b" }
+        },
+        {
+          "id": "elem-discount-val",
+          "type": "text",
+          "x": 148,
+          "y": 11,
+          "width": 30,
+          "height": 6,
+          "text": "-{{formatCurrency(invoice.discount)}}",
+          "style": { "fontSize": 8.5, "textAlign": "right", "color": "#dc2626" }
+        },
+        {
+          "id": "elem-tax-lbl",
+          "type": "text",
+          "x": 118,
+          "y": 17,
+          "width": 30,
+          "height": 6,
+          "text": "Tax (8.5%):",
+          "style": { "fontSize": 8.5, "color": "#64748b" }
+        },
+        {
+          "id": "elem-tax-val",
+          "type": "text",
+          "x": 148,
+          "y": 17,
+          "width": 30,
+          "height": 6,
+          "text": "{{formatCurrency(invoice.taxAmount)}}",
+          "style": { "fontSize": 8.5, "textAlign": "right" }
+        },
+        {
+          "id": "elem-tot-line",
+          "type": "shape",
+          "shapeType": "line",
+          "x": 118,
+          "y": 24,
+          "width": 59,
+          "height": 0.5,
+          "strokeColor": "#cbd5e1",
+          "strokeWidth": 0.5
+        },
+        {
+          "id": "elem-grand-lbl",
+          "type": "text",
+          "x": 118,
+          "y": 27,
+          "width": 25,
+          "height": 8,
+          "text": "TOTAL:",
+          "style": { "fontSize": 10, "fontWeight": "bold", "color": "#1e3a8a" }
+        },
+        {
+          "id": "elem-grand-val",
+          "type": "text",
+          "x": 143,
+          "y": 27,
+          "width": 35,
+          "height": 8,
+          "text": "{{formatCurrency(invoice.total)}}",
+          "style": { "fontSize": 11, "fontWeight": "bold", "color": "#1e3a8a", "textAlign": "right" }
+        }
+      ]
+    },
+    {
+      "id": "sec-page-footer",
+      "type": "pageFooter",
+      "name": "Page Footer",
+      "height": 12,
+      "elements": [
+        {
+          "id": "elem-footer-line",
+          "type": "shape",
+          "shapeType": "line",
+          "x": 0,
+          "y": 0,
+          "width": 180,
+          "height": 0.5,
+          "strokeColor": "#e2e8f0",
+          "strokeWidth": 0.5
+        },
+        {
+          "id": "elem-footer-left",
+          "type": "text",
+          "x": 0,
+          "y": 3,
+          "width": 100,
+          "height": 6,
+          "text": "Acme Technologies Global Ltd. • Generated by NextReport Platform",
+          "style": { "fontSize": 7.5, "color": "#94a3b8" }
+        },
+        {
+          "id": "elem-footer-page-num",
+          "type": "text",
+          "x": 130,
+          "y": 3,
+          "width": 50,
+          "height": 6,
+          "text": "Page {{pageNumber}} of {{totalPages}}",
+          "style": { "fontSize": 7.5, "color": "#94a3b8", "textAlign": "right" }
+        }
+      ]
+    }
+  ]
+}

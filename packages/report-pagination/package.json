@@ -1,0 +1,27 @@
+{
+  "name": "@report/pagination",
+  "version": "1.0.0",
+  "description": "Multi-page pagination engine with sections, table splits, and repeating headers",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch"
+  },
+  "dependencies": {
+    "@report/schema": "workspace:*",
+    "@report/expression": "workspace:*",
+    "@report/data": "workspace:*",
+    "@report/layout": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.3"
+  }
+}
