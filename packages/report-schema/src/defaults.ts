@@ -13,7 +13,7 @@ export function createBlankReport(name = 'New Report'): ReportDefinition {
     id: 'sec-detail',
     type: 'detail',
     name: 'Detail',
-    height: 180,
+    height: 227,
     elements: []
   };
 
@@ -29,7 +29,7 @@ export function createBlankReport(name = 'New Report'): ReportDefinition {
     version: '1.0',
     name,
     title: name,
-    description: 'Report created with NextReport Designer',
+    description: 'Report created with NovaReport Designer',
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
     page: {
@@ -133,3 +133,29 @@ export function createDefaultTableElement(partial: Partial<TableElement> = {}): 
     ...partial
   };
 }
+
+export function createDefaultChartElement(partial: Partial<import('./types.js').ChartElement> = {}): import('./types.js').ChartElement {
+  return {
+    id: `elem-chart-${Math.random().toString(36).substring(2, 9)}`,
+    type: 'chart',
+    name: 'Sales Chart',
+    chartType: 'bar',
+    x: 10,
+    y: 10,
+    width: 90,
+    height: 55,
+    title: 'Monthly Performance',
+    data: [
+      { label: 'Q1', value: 45000 },
+      { label: 'Q2', value: 68000 },
+      { label: 'Q3', value: 82000 },
+      { label: 'Q4', value: 115000 }
+    ],
+    colors: ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'],
+    showLegend: true,
+    showLabels: true,
+    showGrid: true,
+    ...partial
+  };
+}
+

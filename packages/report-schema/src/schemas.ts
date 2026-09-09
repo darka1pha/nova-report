@@ -167,13 +167,33 @@ export const TableElementSchema = BaseElementSchema.extend({
   groupBy: z.string().optional()
 });
 
+export const ChartDataPointSchema = z.object({
+  label: z.string(),
+  value: z.number()
+});
+
+export const ChartElementSchema = BaseElementSchema.extend({
+  type: z.literal('chart'),
+  chartType: z.enum(['bar', 'line', 'pie', 'donut']),
+  title: z.string().optional(),
+  dataSource: z.string().optional(),
+  categoryField: z.string().optional(),
+  valueField: z.string().optional(),
+  data: z.array(ChartDataPointSchema).optional(),
+  colors: z.array(z.string()).optional(),
+  showLegend: z.boolean().optional(),
+  showLabels: z.boolean().optional(),
+  showGrid: z.boolean().optional()
+});
+
 export const ReportElementSchema = z.discriminatedUnion('type', [
   TextElementSchema,
   ShapeElementSchema,
   ImageElementSchema,
   BarcodeElementSchema,
   QRCodeElementSchema,
-  TableElementSchema
+  TableElementSchema,
+  ChartElementSchema
 ]);
 
 export const SectionTypeSchema = z.enum([

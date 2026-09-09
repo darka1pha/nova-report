@@ -8,7 +8,15 @@ import type {
   LayoutBarcodeElement,
   LayoutQRCodeElement,
   LayoutTableElementInstance,
+  LayoutChartElement,
   ResolvedBorders
+} from '@report/core';
+import {
+  encodeBarcode,
+  barcodeToSvg,
+  generateQRCodeMatrix,
+  qrcodeToSvg,
+  chartToSvg
 } from '@report/core';
 import type { ReportExporter, ExportOptions } from '@report/exporter';
 import { registerExporter } from '@report/exporter';
@@ -95,6 +103,8 @@ export class HtmlExporter implements ReportExporter {
         return this.renderQRCodeElement(element as LayoutQRCodeElement);
       case 'table':
         return this.renderTableElement(element as LayoutTableElementInstance);
+      case 'chart':
+        return this.renderChartElement(element as LayoutChartElement);
       default:
         return '';
     }
@@ -185,41 +195,56 @@ export class HtmlExporter implements ReportExporter {
   }
 
   private renderBarcodeElement(el: LayoutBarcodeElement): string {
+    const barcode = encodeBarcode(el.format, el.value);
+    const svg = barcodeToSvg(barcode, el.widthPt, el.heightPt, {
+      barColor: el.barColor,
+      backgroundColor: el.backgroundColor,
+      includeText: el.includeText
+    });
+
     return `<div class="report-element" style="
       left: ${el.xPt}pt;
       top: ${el.yPt}pt;
       width: ${el.widthPt}pt;
       height: ${el.heightPt}pt;
-      background-color: ${el.backgroundColor};
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      font-family: monospace;
-      font-size: 8pt;
-      color: ${el.barColor};
-      border: 1px solid #d1d5db;
+      ${bordersToCss(el.borders)}
+      ${el.rotation ? `transform: rotate(${el.rotation}deg);` : ''}
     ">
-      <div style="font-weight: bold; letter-spacing: 2px;">||| | |||| | | |||</div>
-      ${el.includeText ? `<div>${escapeHtml(el.value)}</div>` : ''}
+      ${svg}
     </div>`;
   }
 
   private renderQRCodeElement(el: LayoutQRCodeElement): string {
+    const matrix = generateQRCodeMatrix(el.value, (el.errorCorrectionLevel || 'M') as any);
+    const svg = qrcodeToSvg(matrix, el.widthPt, el.heightPt, {
+      darkColor: el.darkColor,
+      lightColor: el.lightColor
+    });
+
     return `<div class="report-element" style="
       left: ${el.xPt}pt;
       top: ${el.yPt}pt;
       width: ${el.widthPt}pt;
       height: ${el.heightPt}pt;
-      background-color: ${el.lightColor};
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border: 1px solid #d1d5db;
+      ${bordersToCss(el.borders)}
+      ${el.rotation ? `transform: rotate(${el.rotation}deg);` : ''}
     ">
-      <svg width="80%" height="80%" viewBox="0 0 25 25">
-        <path fill="${el.darkColor}" d="M0 0h7v7H0zm2 2h3v3H2zm7-2h2v2H9zm4 0h7v7h-7zm2 2h3v3h-3zM0 9h2v2H0zm4 0h3v2H4zm4 0h2v2H8zm4 0h2v2h-2zm4 0h2v2h-2zm-16 4h7v7H0zm2 2h3v3H2zm7-2h4v2H9zm6 0h2v4h-2zm-6 3h2v3H9zm4 0h2v3h-2zm-4 3h7v2H9z"/>
-      </svg>
+      ${svg}
+    </div>`;
+  }
+
+  private renderChartElement(el: LayoutChartElement): string {
+    const svg = chartToSvg(el.chart, el.widthPt, el.heightPt);
+
+    return `<div class="report-element" style="
+      left: ${el.xPt}pt;
+      top: ${el.yPt}pt;
+      width: ${el.widthPt}pt;
+      height: ${el.heightPt}pt;
+      ${bordersToCss(el.borders)}
+      ${el.rotation ? `transform: rotate(${el.rotation}deg);` : ''}
+    ">
+      ${svg}
     </div>`;
   }
 

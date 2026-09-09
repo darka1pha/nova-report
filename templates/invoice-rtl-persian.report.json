@@ -41,10 +41,34 @@
           "phone": "۰۳۱-۳۶۶۰۰۱۱۲"
         },
         "items": [
-          { "row": 1, "description": "سرور ابری اختصاصی ۶۴ گیگابایت رم (ماهانه)", "count": 2, "unitPrice": "۱۸,۵۰۰,۰۰۰", "totalPrice": "۳۷,۰۰۰,۰۰۰" },
-          { "row": 2, "description": "لایسنس پایگاه داده سازمانی با پشتیبانی طلایی", "count": 1, "unitPrice": "۴۵,۰۰۰,۰۰۰", "totalPrice": "۴۵,۰۰۰,۰۰۰" },
-          { "row": 3, "description": "پکیج امنیت شبکه و گواهی SSL سازمانی", "count": 3, "unitPrice": "۶,۲۰۰,۰۰۰", "totalPrice": "۱۸,۶۰۰,۰۰۰" },
-          { "row": 4, "description": "خدمات راه‌اندازی و مانیتورینگ ۲۴/۷ زیرساخت", "count": 1, "unitPrice": "۱۲,۴۰۰,۰۰۰", "totalPrice": "۱۲,۴۰۰,۰۰۰" }
+          {
+            "row": 1,
+            "description": "سرور ابری اختصاصی ۶۴ گیگابایت رم (ماهانه)",
+            "count": 2,
+            "unitPrice": "۱۸,۵۰۰,۰۰۰",
+            "totalPrice": "۳۷,۰۰۰,۰۰۰"
+          },
+          {
+            "row": 2,
+            "description": "لایسنس پایگاه داده سازمانی با پشتیبانی طلایی",
+            "count": 1,
+            "unitPrice": "۴۵,۰۰۰,۰۰۰",
+            "totalPrice": "۴۵,۰۰۰,۰۰۰"
+          },
+          {
+            "row": 3,
+            "description": "پکیج امنیت شبکه و گواهی SSL سازمانی",
+            "count": 3,
+            "unitPrice": "۶,۲۰۰,۰۰۰",
+            "totalPrice": "۱۸,۶۰۰,۰۰۰"
+          },
+          {
+            "row": 4,
+            "description": "خدمات راه‌اندازی و مانیتورینگ ۲۴/۷ زیرساخت",
+            "count": 1,
+            "unitPrice": "۱۲,۴۰۰,۰۰۰",
+            "totalPrice": "۱۲,۴۰۰,۰۰۰"
+          }
         ],
         "sumPrice": "۱۱۳,۰۰۰,۰۰۰",
         "tax": "۱۱,۳۰۰,۰۰۰",
@@ -65,7 +89,7 @@
         {
           "id": "elem-title",
           "type": "text",
-          "x": 60,
+          "x": 75,
           "y": 2,
           "width": 60,
           "height": 10,
@@ -82,7 +106,7 @@
         {
           "id": "elem-meta-info",
           "type": "text",
-          "x": 125,
+          "x": 140,
           "y": 5,
           "width": 55,
           "height": 18,
@@ -101,7 +125,7 @@
           "id": "elem-header-line",
           "type": "shape",
           "shapeType": "line",
-          "x": 0,
+          "x": 15,
           "y": 35,
           "width": 180,
           "height": 0.5,
@@ -120,7 +144,7 @@
           "id": "elem-parties-box",
           "type": "shape",
           "shapeType": "rounded-rectangle",
-          "x": 0,
+          "x": 15,
           "y": 2,
           "width": 180,
           "height": 38,
@@ -132,7 +156,7 @@
         {
           "id": "elem-seller-info",
           "type": "text",
-          "x": 92,
+          "x": 107,
           "y": 4,
           "width": 84,
           "height": 32,
@@ -151,7 +175,7 @@
           "id": "elem-divider-vertical",
           "type": "shape",
           "shapeType": "line",
-          "x": 90,
+          "x": 105,
           "y": 4,
           "width": 0.5,
           "height": 34,
@@ -161,7 +185,7 @@
         {
           "id": "elem-buyer-info",
           "type": "text",
-          "x": 4,
+          "x": 19,
           "y": 4,
           "width": 84,
           "height": 32,
@@ -188,19 +212,36 @@
           "id": "elem-items-table",
           "type": "table",
           "name": "جدول کالا و خدمات",
-          "x": 0,
+          "x": 15,
           "y": 2,
           "width": 180,
           "height": 55,
           "dataSource": "factor.items",
           "repeatHeaderOnEveryPage": true,
-          "style": { "direction": "rtl" },
+          "style": {
+            "direction": "rtl"
+          },
           "columns": [
-            { "id": "col-row", "width": 15 },
-            { "id": "col-desc", "width": 95 },
-            { "id": "col-qty", "width": 15 },
-            { "id": "col-price", "width": 27 },
-            { "id": "col-total", "width": 28 }
+            {
+              "id": "col-row",
+              "width": 15
+            },
+            {
+              "id": "col-desc",
+              "width": 95
+            },
+            {
+              "id": "col-qty",
+              "width": 15
+            },
+            {
+              "id": "col-price",
+              "width": 27
+            },
+            {
+              "id": "col-total",
+              "width": 28
+            }
           ],
           "headerRows": [
             {
@@ -208,11 +249,72 @@
               "height": 8,
               "isHeader": true,
               "cells": [
-                { "id": "h-row", "text": "ردیف", "style": { "fontFamily": "Tahoma, Arial", "fontSize": 8, "fontWeight": "bold", "color": "#ffffff", "backgroundColor": "#334155", "textAlign": "center" } },
-                { "id": "h-desc", "text": "شرح کالا یا خدمات", "style": { "fontFamily": "Tahoma, Arial", "fontSize": 8, "fontWeight": "bold", "color": "#ffffff", "backgroundColor": "#334155", "textAlign": "right", "padding": { "top": 2, "right": 4, "bottom": 2, "left": 4 } } },
-                { "id": "h-qty", "text": "تعداد", "style": { "fontFamily": "Tahoma, Arial", "fontSize": 8, "fontWeight": "bold", "color": "#ffffff", "backgroundColor": "#334155", "textAlign": "center" } },
-                { "id": "h-price", "text": "مبلغ واحد (ریال)", "style": { "fontFamily": "Tahoma, Arial", "fontSize": 8, "fontWeight": "bold", "color": "#ffffff", "backgroundColor": "#334155", "textAlign": "center" } },
-                { "id": "h-tot", "text": "مبلغ کل (ریال)", "style": { "fontFamily": "Tahoma, Arial", "fontSize": 8, "fontWeight": "bold", "color": "#ffffff", "backgroundColor": "#334155", "textAlign": "center" } }
+                {
+                  "id": "h-row",
+                  "text": "ردیف",
+                  "style": {
+                    "fontFamily": "Tahoma, Arial",
+                    "fontSize": 8,
+                    "fontWeight": "bold",
+                    "color": "#ffffff",
+                    "backgroundColor": "#334155",
+                    "textAlign": "center"
+                  }
+                },
+                {
+                  "id": "h-desc",
+                  "text": "شرح کالا یا خدمات",
+                  "style": {
+                    "fontFamily": "Tahoma, Arial",
+                    "fontSize": 8,
+                    "fontWeight": "bold",
+                    "color": "#ffffff",
+                    "backgroundColor": "#334155",
+                    "textAlign": "right",
+                    "padding": {
+                      "top": 2,
+                      "right": 4,
+                      "bottom": 2,
+                      "left": 4
+                    }
+                  }
+                },
+                {
+                  "id": "h-qty",
+                  "text": "تعداد",
+                  "style": {
+                    "fontFamily": "Tahoma, Arial",
+                    "fontSize": 8,
+                    "fontWeight": "bold",
+                    "color": "#ffffff",
+                    "backgroundColor": "#334155",
+                    "textAlign": "center"
+                  }
+                },
+                {
+                  "id": "h-price",
+                  "text": "مبلغ واحد (ریال)",
+                  "style": {
+                    "fontFamily": "Tahoma, Arial",
+                    "fontSize": 8,
+                    "fontWeight": "bold",
+                    "color": "#ffffff",
+                    "backgroundColor": "#334155",
+                    "textAlign": "center"
+                  }
+                },
+                {
+                  "id": "h-tot",
+                  "text": "مبلغ کل (ریال)",
+                  "style": {
+                    "fontFamily": "Tahoma, Arial",
+                    "fontSize": 8,
+                    "fontWeight": "bold",
+                    "color": "#ffffff",
+                    "backgroundColor": "#334155",
+                    "textAlign": "center"
+                  }
+                }
               ]
             }
           ],
@@ -221,11 +323,92 @@
               "id": "body-rtl-1",
               "height": 7.5,
               "cells": [
-                { "id": "b-row", "text": "{{item.row}}", "style": { "fontFamily": "Tahoma, Arial", "fontSize": 8, "textAlign": "center", "borders": { "bottom": { "style": "solid", "width": 0.2, "color": "#e2e8f0" } } } },
-                { "id": "b-desc", "text": "{{item.description}}", "style": { "fontFamily": "Tahoma, Arial", "fontSize": 8, "textAlign": "right", "padding": { "top": 2, "right": 4, "bottom": 2, "left": 4 }, "borders": { "bottom": { "style": "solid", "width": 0.2, "color": "#e2e8f0" } } } },
-                { "id": "b-qty", "text": "{{item.count}}", "style": { "fontFamily": "Tahoma, Arial", "fontSize": 8, "textAlign": "center", "borders": { "bottom": { "style": "solid", "width": 0.2, "color": "#e2e8f0" } } } },
-                { "id": "b-price", "text": "{{item.unitPrice}}", "style": { "fontFamily": "Tahoma, Arial", "fontSize": 8, "textAlign": "center", "borders": { "bottom": { "style": "solid", "width": 0.2, "color": "#e2e8f0" } } } },
-                { "id": "b-tot", "text": "{{item.totalPrice}}", "style": { "fontFamily": "Tahoma, Arial", "fontSize": 8, "textAlign": "center", "borders": { "bottom": { "style": "solid", "width": 0.2, "color": "#e2e8f0" } } } }
+                {
+                  "id": "b-row",
+                  "text": "{{item.row}}",
+                  "style": {
+                    "fontFamily": "Tahoma, Arial",
+                    "fontSize": 8,
+                    "textAlign": "center",
+                    "borders": {
+                      "bottom": {
+                        "style": "solid",
+                        "width": 0.2,
+                        "color": "#e2e8f0"
+                      }
+                    }
+                  }
+                },
+                {
+                  "id": "b-desc",
+                  "text": "{{item.description}}",
+                  "style": {
+                    "fontFamily": "Tahoma, Arial",
+                    "fontSize": 8,
+                    "textAlign": "right",
+                    "padding": {
+                      "top": 2,
+                      "right": 4,
+                      "bottom": 2,
+                      "left": 4
+                    },
+                    "borders": {
+                      "bottom": {
+                        "style": "solid",
+                        "width": 0.2,
+                        "color": "#e2e8f0"
+                      }
+                    }
+                  }
+                },
+                {
+                  "id": "b-qty",
+                  "text": "{{item.count}}",
+                  "style": {
+                    "fontFamily": "Tahoma, Arial",
+                    "fontSize": 8,
+                    "textAlign": "center",
+                    "borders": {
+                      "bottom": {
+                        "style": "solid",
+                        "width": 0.2,
+                        "color": "#e2e8f0"
+                      }
+                    }
+                  }
+                },
+                {
+                  "id": "b-price",
+                  "text": "{{item.unitPrice}}",
+                  "style": {
+                    "fontFamily": "Tahoma, Arial",
+                    "fontSize": 8,
+                    "textAlign": "center",
+                    "borders": {
+                      "bottom": {
+                        "style": "solid",
+                        "width": 0.2,
+                        "color": "#e2e8f0"
+                      }
+                    }
+                  }
+                },
+                {
+                  "id": "b-tot",
+                  "text": "{{item.totalPrice}}",
+                  "style": {
+                    "fontFamily": "Tahoma, Arial",
+                    "fontSize": 8,
+                    "textAlign": "center",
+                    "borders": {
+                      "bottom": {
+                        "style": "solid",
+                        "width": 0.2,
+                        "color": "#e2e8f0"
+                      }
+                    }
+                  }
+                }
               ]
             }
           ]
@@ -241,19 +424,26 @@
         {
           "id": "elem-rtl-terms",
           "type": "text",
-          "x": 80,
+          "x": 95,
           "y": 4,
           "width": 100,
           "height": 20,
           "text": "شرایط و توضیحات:\n{{factor.terms}}",
           "multiline": true,
-          "style": { "fontFamily": "Tahoma, Arial", "fontSize": 8, "color": "#475569", "textAlign": "right", "direction": "rtl", "lineHeight": 1.4 }
+          "style": {
+            "fontFamily": "Tahoma, Arial",
+            "fontSize": 8,
+            "color": "#475569",
+            "textAlign": "right",
+            "direction": "rtl",
+            "lineHeight": 1.4
+          }
         },
         {
           "id": "elem-rtl-total-box",
           "type": "shape",
           "shapeType": "rectangle",
-          "x": 0,
+          "x": 15,
           "y": 2,
           "width": 75,
           "height": 36,
@@ -264,48 +454,71 @@
         {
           "id": "elem-rtl-sum-lbl",
           "type": "text",
-          "x": 40,
+          "x": 55,
           "y": 5,
           "width": 32,
           "height": 6,
           "text": "جمع اقلام:",
-          "style": { "fontFamily": "Tahoma, Arial", "fontSize": 8, "color": "#64748b", "textAlign": "right", "direction": "rtl" }
+          "style": {
+            "fontFamily": "Tahoma, Arial",
+            "fontSize": 8,
+            "color": "#64748b",
+            "textAlign": "right",
+            "direction": "rtl"
+          }
         },
         {
           "id": "elem-rtl-sum-val",
           "type": "text",
-          "x": 3,
+          "x": 18,
           "y": 5,
           "width": 35,
           "height": 6,
           "text": "{{factor.sumPrice}} ریال",
-          "style": { "fontFamily": "Tahoma, Arial", "fontSize": 8, "fontWeight": "bold", "textAlign": "left", "direction": "rtl" }
+          "style": {
+            "fontFamily": "Tahoma, Arial",
+            "fontSize": 8,
+            "fontWeight": "bold",
+            "textAlign": "left",
+            "direction": "rtl"
+          }
         },
         {
           "id": "elem-rtl-tax-lbl",
           "type": "text",
-          "x": 40,
+          "x": 55,
           "y": 12,
           "width": 32,
           "height": 6,
           "text": "مالیات و عوارض (۱۰٪):",
-          "style": { "fontFamily": "Tahoma, Arial", "fontSize": 8, "color": "#64748b", "textAlign": "right", "direction": "rtl" }
+          "style": {
+            "fontFamily": "Tahoma, Arial",
+            "fontSize": 8,
+            "color": "#64748b",
+            "textAlign": "right",
+            "direction": "rtl"
+          }
         },
         {
           "id": "elem-rtl-tax-val",
           "type": "text",
-          "x": 3,
+          "x": 18,
           "y": 12,
           "width": 35,
           "height": 6,
           "text": "{{factor.tax}} ریال",
-          "style": { "fontFamily": "Tahoma, Arial", "fontSize": 8, "textAlign": "left", "direction": "rtl" }
+          "style": {
+            "fontFamily": "Tahoma, Arial",
+            "fontSize": 8,
+            "textAlign": "left",
+            "direction": "rtl"
+          }
         },
         {
           "id": "elem-rtl-tot-line",
           "type": "shape",
           "shapeType": "line",
-          "x": 3,
+          "x": 18,
           "y": 20,
           "width": 69,
           "height": 0.5,
@@ -315,22 +528,36 @@
         {
           "id": "elem-rtl-final-lbl",
           "type": "text",
-          "x": 40,
+          "x": 55,
           "y": 24,
           "width": 32,
           "height": 8,
           "text": "مبلغ قابل پرداخت:",
-          "style": { "fontFamily": "Tahoma, Arial", "fontSize": 9, "fontWeight": "bold", "color": "#1e293b", "textAlign": "right", "direction": "rtl" }
+          "style": {
+            "fontFamily": "Tahoma, Arial",
+            "fontSize": 9,
+            "fontWeight": "bold",
+            "color": "#1e293b",
+            "textAlign": "right",
+            "direction": "rtl"
+          }
         },
         {
           "id": "elem-rtl-final-val",
           "type": "text",
-          "x": 3,
+          "x": 18,
           "y": 24,
           "width": 35,
           "height": 8,
           "text": "{{factor.finalPrice}} ریال",
-          "style": { "fontFamily": "Tahoma, Arial", "fontSize": 9.5, "fontWeight": "bold", "color": "#1e293b", "textAlign": "left", "direction": "rtl" }
+          "style": {
+            "fontFamily": "Tahoma, Arial",
+            "fontSize": 9.5,
+            "fontWeight": "bold",
+            "color": "#1e293b",
+            "textAlign": "left",
+            "direction": "rtl"
+          }
         }
       ]
     },
@@ -343,12 +570,18 @@
         {
           "id": "elem-footer-text",
           "type": "text",
-          "x": 30,
+          "x": 45,
           "y": 3,
           "width": 150,
           "height": 6,
-          "text": "صفحه {{pageNumber}} از {{totalPages}} — سامانه گزارش‌ساز NextReport",
-          "style": { "fontFamily": "Tahoma, Arial", "fontSize": 7.5, "color": "#94a3b8", "textAlign": "right", "direction": "rtl" }
+          "text": "صفحه {{pageNumber}} از {{totalPages}} — سامانه گزارش‌ساز NovaReport",
+          "style": {
+            "fontFamily": "Tahoma, Arial",
+            "fontSize": 7.5,
+            "color": "#94a3b8",
+            "textAlign": "right",
+            "direction": "rtl"
+          }
         }
       ]
     }

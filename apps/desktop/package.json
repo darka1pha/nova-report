@@ -2,7 +2,7 @@
   "name": "@report/desktop",
   "version": "1.0.0",
   "private": true,
-  "description": "NextReport Desktop Report Designer (Electron + Next.js)",
+  "description": "NovaReport Desktop Report Designer (Electron + Next.js)",
   "scripts": {
     "dev": "next dev -p 3000",
     "dev:electron": "tsc -p tsconfig.electron.json && concurrently \"next dev -p 3000\" \"wait-on http://localhost:3000 && electron dist/electron/main.js\"",

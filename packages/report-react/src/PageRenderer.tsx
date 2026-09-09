@@ -8,7 +8,15 @@ import type {
   LayoutBarcodeElement,
   LayoutQRCodeElement,
   LayoutTableElementInstance,
+  LayoutChartElement,
   ResolvedBorders
+} from '@report/engine';
+import {
+  encodeBarcode,
+  barcodeToSvg,
+  generateQRCodeMatrix,
+  qrcodeToSvg,
+  chartToSvg
 } from '@report/engine';
 
 export interface PageRendererProps {
@@ -69,6 +77,8 @@ const ElementRenderer: React.FC<{ element: LayoutElement; searchQuery?: string }
       return <QRCodeRenderer element={element as LayoutQRCodeElement} />;
     case 'table':
       return <TableRenderer element={element as LayoutTableElementInstance} searchQuery={searchQuery} />;
+    case 'chart':
+      return <ChartRenderer element={element as LayoutChartElement} />;
     default:
       return null;
   }
@@ -202,6 +212,13 @@ const ImageRenderer: React.FC<{ element: LayoutImageElement }> = ({ element }) =
 };
 
 const BarcodeRenderer: React.FC<{ element: LayoutBarcodeElement }> = ({ element }) => {
+  const barcode = encodeBarcode(element.format, element.value);
+  const svg = barcodeToSvg(barcode, element.widthPt, element.heightPt, {
+    barColor: element.barColor,
+    backgroundColor: element.backgroundColor,
+    includeText: element.includeText
+  });
+
   return (
     <div
       style={{
@@ -210,24 +227,21 @@ const BarcodeRenderer: React.FC<{ element: LayoutBarcodeElement }> = ({ element 
         top: `${element.yPt}px`,
         width: `${element.widthPt}px`,
         height: `${element.heightPt}px`,
-        backgroundColor: element.backgroundColor,
-        color: element.barColor,
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        fontFamily: 'monospace',
-        fontSize: '8px',
-        border: '1px solid #d1d5db'
+        transform: element.rotation ? `rotate(${element.rotation}deg)` : undefined,
+        ...bordersToReactStyle(element.borders)
       }}
-    >
-      <div style={{ fontWeight: 'bold', letterSpacing: '2px' }}>||| | |||| | | |||</div>
-      {element.includeText && <div>{element.value}</div>}
-    </div>
+      dangerouslySetInnerHTML={{ __html: svg }}
+    />
   );
 };
 
 const QRCodeRenderer: React.FC<{ element: LayoutQRCodeElement }> = ({ element }) => {
+  const matrix = generateQRCodeMatrix(element.value, (element.errorCorrectionLevel || 'M') as any);
+  const svg = qrcodeToSvg(matrix, element.widthPt, element.heightPt, {
+    darkColor: element.darkColor,
+    lightColor: element.lightColor
+  });
+
   return (
     <div
       style={{
@@ -236,20 +250,30 @@ const QRCodeRenderer: React.FC<{ element: LayoutQRCodeElement }> = ({ element })
         top: `${element.yPt}px`,
         width: `${element.widthPt}px`,
         height: `${element.heightPt}px`,
-        backgroundColor: element.lightColor,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        border: '1px solid #d1d5db'
+        transform: element.rotation ? `rotate(${element.rotation}deg)` : undefined,
+        ...bordersToReactStyle(element.borders)
       }}
-    >
-      <svg width="80%" height="80%" viewBox="0 0 25 25">
-        <path
-          fill={element.darkColor}
-          d="M0 0h7v7H0zm2 2h3v3H2zm7-2h2v2H9zm4 0h7v7h-7zm2 2h3v3h-3zM0 9h2v2H0zm4 0h3v2H4zm4 0h2v2H8zm4 0h2v2h-2zm4 0h2v2h-2zm-16 4h7v7H0zm2 2h3v3H2zm7-2h4v2H9zm6 0h2v4h-2zm-6 3h2v3H9zm4 0h2v3h-2zm-4 3h7v2H9z"
-        />
-      </svg>
-    </div>
+      dangerouslySetInnerHTML={{ __html: svg }}
+    />
+  );
+};
+
+const ChartRenderer: React.FC<{ element: LayoutChartElement }> = ({ element }) => {
+  const svg = chartToSvg(element.chart, element.widthPt, element.heightPt);
+
+  return (
+    <div
+      style={{
+        position: 'absolute',
+        left: `${element.xPt}px`,
+        top: `${element.yPt}px`,
+        width: `${element.widthPt}px`,
+        height: `${element.heightPt}px`,
+        transform: element.rotation ? `rotate(${element.rotation}deg)` : undefined,
+        ...bordersToReactStyle(element.borders)
+      }}
+      dangerouslySetInnerHTML={{ __html: svg }}
+    />
   );
 };
 

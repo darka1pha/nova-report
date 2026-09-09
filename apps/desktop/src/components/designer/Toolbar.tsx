@@ -23,14 +23,18 @@ import {
   AlignJustify,
   FileCode,
   Database,
-  Printer
+  Printer,
+  Ruler,
+  HelpCircle,
+  Keyboard
 } from 'lucide-react';
 import { exportReport } from '@report/engine';
 
 export const Toolbar: React.FC<{
   onOpenTemplates: () => void;
   onOpenDataSources: () => void;
-}> = ({ onOpenTemplates, onOpenDataSources }) => {
+  onOpenShortcuts: () => void;
+}> = ({ onOpenTemplates, onOpenDataSources, onOpenShortcuts }) => {
   const {
     report,
     canUndo,
@@ -43,6 +47,10 @@ export const Toolbar: React.FC<{
     setViewMode,
     snapToGrid,
     setSnapToGrid,
+    gridSizeMm,
+    setGridSizeMm,
+    showRulers,
+    setShowRulers,
     selectedElementIds,
     duplicateSelectedElements,
     deleteSelectedElements,
@@ -142,7 +150,7 @@ export const Toolbar: React.FC<{
           <div className="w-7 h-7 bg-blue-600 rounded flex items-center justify-center font-bold text-white text-sm shadow">
             NR
           </div>
-          <span className="font-semibold text-sm tracking-tight text-white hidden sm:inline">NextReport Studio</span>
+          <span className="font-semibold text-sm tracking-tight text-white hidden sm:inline">NovaReport Studio</span>
         </div>
 
         <button
@@ -226,64 +234,126 @@ export const Toolbar: React.FC<{
           </div>
         )}
 
-        {selectedElementIds.length > 1 && (
-          <div className="flex items-center gap-1 px-2 border-r border-studio-800">
+        {selectedElementIds.length >= 1 && (
+          <div className="flex items-center gap-0.5 px-2 border-r border-studio-800">
             <button
               onClick={() => alignSelectedElements('left')}
-              className="p-1.5 hover:bg-studio-800 text-studio-300 rounded"
-              title="Align Left"
+              className="p-1.5 hover:bg-studio-800 text-studio-300 hover:text-white rounded transition"
+              title={selectedElementIds.length === 1 ? 'Align to Left Margin' : 'Align Left'}
             >
-              <AlignLeft size={14} />
+              <AlignLeft size={13} />
             </button>
             <button
               onClick={() => alignSelectedElements('center')}
-              className="p-1.5 hover:bg-studio-800 text-studio-300 rounded"
-              title="Align Center"
+              className="p-1.5 hover:bg-studio-800 text-studio-300 hover:text-white rounded transition"
+              title={selectedElementIds.length === 1 ? 'Center within Printable Margins' : 'Align Center (Horizontal)'}
             >
-              <AlignCenter size={14} />
+              <AlignCenter size={13} />
             </button>
             <button
               onClick={() => alignSelectedElements('right')}
-              className="p-1.5 hover:bg-studio-800 text-studio-300 rounded"
-              title="Align Right"
+              className="p-1.5 hover:bg-studio-800 text-studio-300 hover:text-white rounded transition"
+              title={selectedElementIds.length === 1 ? 'Align to Right Margin' : 'Align Right'}
             >
-              <AlignRight size={14} />
+              <AlignRight size={13} />
+            </button>
+            <span className="text-studio-700 mx-0.5">|</span>
+            <button
+              onClick={() => alignSelectedElements('top')}
+              className="p-1.5 hover:bg-studio-800 text-studio-300 hover:text-white rounded transition text-[11px] font-mono font-bold"
+              title={selectedElementIds.length === 1 ? 'Align to Section Top' : 'Align Top'}
+            >
+              ↑T
+            </button>
+            <button
+              onClick={() => alignSelectedElements('middle')}
+              className="p-1.5 hover:bg-studio-800 text-studio-300 hover:text-white rounded transition text-[11px] font-mono font-bold"
+              title={selectedElementIds.length === 1 ? 'Center in Section Vertically' : 'Align Middle (Vertical)'}
+            >
+              ↕M
+            </button>
+            <button
+              onClick={() => alignSelectedElements('bottom')}
+              className="p-1.5 hover:bg-studio-800 text-studio-300 hover:text-white rounded transition text-[11px] font-mono font-bold"
+              title={selectedElementIds.length === 1 ? 'Align to Section Bottom' : 'Align Bottom'}
+            >
+              ↓B
             </button>
           </div>
         )}
 
-        {/* Snap to Grid Toggle */}
+        {/* Rulers Toggle */}
         <button
-          onClick={() => setSnapToGrid(!snapToGrid)}
+          onClick={() => setShowRulers(!showRulers)}
           className={`p-1.5 rounded text-xs flex items-center gap-1 transition ${
-            snapToGrid ? 'bg-studio-800 text-blue-400' : 'text-studio-400 hover:bg-studio-800'
+            showRulers ? 'bg-studio-800 text-blue-400 font-medium' : 'text-studio-400 hover:bg-studio-800'
           }`}
-          title="Toggle Grid Snapping"
+          title="Toggle Canvas Rulers & Cursor Tracker"
         >
-          <Grid size={15} />
-          <span className="hidden lg:inline">Snap</span>
+          <Ruler size={14} />
+          <span className="hidden xl:inline">Rulers</span>
         </button>
+
+        {/* Snap to Grid Toggle and Size */}
+        <div className="flex items-center gap-1 bg-studio-950 px-1.5 py-0.5 rounded border border-studio-800">
+          <button
+            onClick={() => setSnapToGrid(!snapToGrid)}
+            className={`p-1 rounded text-xs flex items-center gap-1 transition ${
+              snapToGrid ? 'text-blue-400 font-medium' : 'text-studio-500 hover:text-white'
+            }`}
+            title="Toggle Grid Snapping"
+          >
+            <Grid size={13} />
+            <span className="text-[11px]">Snap</span>
+          </button>
+          <select
+            value={gridSizeMm}
+            onChange={e => setGridSizeMm(Number(e.target.value))}
+            className="bg-transparent text-[10px] text-studio-300 outline-none cursor-pointer"
+            title="Grid increment size"
+          >
+            <option value={2} className="bg-studio-900">2mm</option>
+            <option value={5} className="bg-studio-900">5mm</option>
+            <option value={10} className="bg-studio-900">10mm</option>
+          </select>
+        </div>
 
         {/* Zoom Controls */}
         <div className="flex items-center gap-1 bg-studio-950 px-2 py-1 rounded border border-studio-800 text-xs">
           <button
             onClick={() => setZoom(z => Math.max(0.25, Math.round((z - 0.1) * 10) / 10))}
-            className="text-studio-400 hover:text-white"
+            className="text-studio-400 hover:text-white p-0.5 rounded"
+            title="Zoom Out"
           >
             <ZoomOut size={13} />
           </button>
-          <span className="w-10 text-center font-mono">{Math.round(zoom * 100)}%</span>
+          <span
+            onClick={() => setZoom(1)}
+            className="w-10 text-center font-mono cursor-pointer hover:text-blue-400"
+            title="Click to reset zoom to 100%"
+          >
+            {Math.round(zoom * 100)}%
+          </span>
           <button
             onClick={() => setZoom(z => Math.min(2.5, Math.round((z + 0.1) * 10) / 10))}
-            className="text-studio-400 hover:text-white"
+            className="text-studio-400 hover:text-white p-0.5 rounded"
+            title="Zoom In"
           >
             <ZoomIn size={13} />
           </button>
         </div>
       </div>
 
-      {/* Right Section: Data Binding, Design/Preview Toggle & Export */}
+      {/* Right Section: Shortcuts Help, Data Binding, Design/Preview Toggle & Export */}
       <div className="flex items-center gap-2">
+        <button
+          onClick={onOpenShortcuts}
+          className="p-1.5 hover:bg-studio-800 text-studio-400 hover:text-white rounded text-xs flex items-center gap-1 transition"
+          title="Keyboard Shortcuts & Gestures"
+        >
+          <Keyboard size={14} />
+          <span className="hidden sm:inline text-[11px]">Shortcuts</span>
+        </button>
         <button
           onClick={onOpenDataSources}
           className="p-1.5 hover:bg-studio-800 text-studio-300 hover:text-white rounded text-xs flex items-center gap-1"

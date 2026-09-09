@@ -10,13 +10,15 @@ import type {
   TableElement,
   ImageElement,
   BarcodeElement,
-  QRCodeElement
+  QRCodeElement,
+  ChartElement
 } from '@report/schema';
 import {
   createBlankReport,
   createDefaultTextElement,
   createDefaultShapeElement,
-  createDefaultTableElement
+  createDefaultTableElement,
+  createDefaultChartElement
 } from '@report/schema';
 
 interface DesignerState {
@@ -27,6 +29,8 @@ interface DesignerState {
   gridSizeMm: number;
   snapToGrid: boolean;
   showGuides: boolean;
+  showRulers: boolean;
+  cursorPos: { xMm: number; yMm: number };
   viewMode: 'design' | 'preview';
   systemFonts: string[];
   canUndo: boolean;
@@ -43,14 +47,19 @@ interface DesignerContextType extends DesignerState {
   setSnapToGrid: (snap: boolean) => void;
   setGridSizeMm: (size: number) => void;
   setShowGuides: (show: boolean) => void;
+  setShowRulers: (show: boolean) => void;
+  setCursorPos: (pos: { xMm: number; yMm: number }) => void;
   setViewMode: (mode: 'design' | 'preview') => void;
   setActiveTool: (tool: string | null) => void;
   updateReport: (updater: (prev: ReportDefinition) => ReportDefinition, description?: string) => void;
   addElement: (sectionId: string, element: ReportElement) => void;
   updateElement: (elementId: string, partial: Partial<ReportElement>) => void;
+  updateSection: (sectionId: string, partial: Partial<SectionDefinition>) => void;
   deleteSelectedElements: () => void;
   duplicateSelectedElements: () => void;
   moveSelectedElements: (dxMm: number, dyMm: number) => void;
+  rotateSelectedElements: (rotation: number) => void;
+  reorderElement: (elementId: string, action: 'front' | 'back' | 'forward' | 'backward') => void;
   alignSelectedElements: (type: 'left' | 'center' | 'right' | 'top' | 'middle' | 'bottom') => void;
   distributeSelectedElements: (axis: 'horizontal' | 'vertical') => void;
   undo: () => void;
@@ -94,6 +103,8 @@ export const DesignerProvider: React.FC<{
   const [gridSizeMm, setGridSizeMm] = useState<number>(5);
   const [snapToGrid, setSnapToGrid] = useState<boolean>(true);
   const [showGuides, setShowGuides] = useState<boolean>(true);
+  const [showRulers, setShowRulers] = useState<boolean>(true);
+  const [cursorPos, setCursorPos] = useState<{ xMm: number; yMm: number }>({ xMm: 0, yMm: 0 });
   const [viewMode, setViewMode] = useState<'design' | 'preview'>('design');
   const [activeTool, setActiveTool] = useState<string | null>(null);
   const [systemFonts, setSystemFonts] = useState<string[]>(FALLBACK_FONTS);
@@ -186,6 +197,22 @@ export const DesignerProvider: React.FC<{
     [updateReport]
   );
 
+  const updateSection = useCallback(
+    (sectionId: string, partial: Partial<SectionDefinition>) => {
+      updateReport(prev => {
+        const nextSections = prev.sections.map(sec => {
+          if (sec.id === sectionId) {
+            return { ...sec, ...partial };
+          }
+          return sec;
+        });
+
+        return { ...prev, sections: nextSections };
+      }, 'Update Section');
+    },
+    [updateReport]
+  );
+
   const deleteSelectedElements = useCallback(() => {
     if (selectedElementIds.length === 0) return;
     updateReport(prev => {
@@ -250,10 +277,95 @@ export const DesignerProvider: React.FC<{
     [selectedElementIds, updateReport]
   );
 
+  const rotateSelectedElements = useCallback(
+    (rotation: number) => {
+      if (selectedElementIds.length === 0) return;
+      updateReport(prev => {
+        const nextSections = prev.sections.map(sec => ({
+          ...sec,
+          elements: sec.elements.map(e => {
+            if (selectedElementIds.includes(e.id)) {
+              return { ...e, rotation: Math.round(rotation) } as ReportElement;
+            }
+            return e;
+          })
+        }));
+        return { ...prev, sections: nextSections };
+      }, 'Rotate Element');
+    },
+    [selectedElementIds, updateReport]
+  );
+
+  const reorderElement = useCallback(
+    (elementId: string, action: 'front' | 'back' | 'forward' | 'backward') => {
+      updateReport(prev => {
+        const nextSections = prev.sections.map(sec => {
+          const idx = sec.elements.findIndex(e => e.id === elementId);
+          if (idx === -1) return sec;
+
+          const elements = [...sec.elements];
+          const elem = elements.splice(idx, 1)[0]!;
+
+          if (action === 'front') {
+            elements.push(elem);
+          } else if (action === 'back') {
+            elements.unshift(elem);
+          } else if (action === 'forward') {
+            const nextIdx = Math.min(elements.length, idx + 1);
+            elements.splice(nextIdx, 0, elem);
+          } else if (action === 'backward') {
+            const nextIdx = Math.max(0, idx - 1);
+            elements.splice(nextIdx, 0, elem);
+          }
+
+          return { ...sec, elements };
+        });
+        return { ...prev, sections: nextSections };
+      }, 'Reorder Element');
+    },
+    [updateReport]
+  );
+
   const alignSelectedElements = useCallback(
     (type: 'left' | 'center' | 'right' | 'top' | 'middle' | 'bottom') => {
-      if (selectedElementIds.length < 2) return;
+      if (selectedElementIds.length === 0) return;
       updateReport(prev => {
+        const margins = prev.page.margins;
+        const isLandscape = prev.page.orientation === 'landscape';
+        const pageWidthMm = isLandscape ? Math.max(prev.page.width, prev.page.height) : prev.page.width;
+        const printableLeft = margins.left;
+        const printableRight = pageWidthMm - margins.right;
+        const printableWidth = printableRight - printableLeft;
+
+        // Single-element alignment: align relative to printable margins and section height
+        if (selectedElementIds.length === 1) {
+          const targetId = selectedElementIds[0];
+          const nextSections = prev.sections.map(sec => ({
+            ...sec,
+            elements: sec.elements.map(e => {
+              if (e.id !== targetId) return e;
+              switch (type) {
+                case 'left':
+                  return { ...e, x: printableLeft };
+                case 'right':
+                  return { ...e, x: Math.max(printableLeft, printableRight - e.width) };
+                case 'center':
+                  return { ...e, x: Math.round((printableLeft + (printableWidth - e.width) / 2) * 10) / 10 };
+                case 'top':
+                  return { ...e, y: 0 };
+                case 'bottom':
+                  return { ...e, y: Math.max(0, sec.height - e.height) };
+                case 'middle':
+                  return { ...e, y: Math.round(Math.max(0, (sec.height - e.height) / 2) * 10) / 10 };
+                default:
+                  return e;
+              }
+            })
+          }));
+          return { ...prev, sections: nextSections };
+        }
+
+        // Multi-element alignment relative to selection bounding box
         let minX = Infinity;
         let maxX = -Infinity;
         let minY = Infinity;
@@ -281,13 +393,13 @@ export const DesignerProvider: React.FC<{
               case 'right':
                 return { ...e, x: maxX - e.width };
               case 'center':
-                return { ...e, x: minX + (maxX - minX - e.width) / 2 };
+                return { ...e, x: Math.round((minX + (maxX - minX - e.width) / 2) * 10) / 10 };
               case 'top':
                 return { ...e, y: minY };
               case 'bottom':
                 return { ...e, y: maxY - e.height };
               case 'middle':
-                return { ...e, y: minY + (maxY - minY - e.height) / 2 };
+                return { ...e, y: Math.round((minY + (maxY - minY - e.height) / 2) * 10) / 10 };
               default:
                 return e;
             }
@@ -409,6 +521,8 @@ export const DesignerProvider: React.FC<{
         gridSizeMm,
         snapToGrid,
         showGuides,
+        showRulers,
+        cursorPos,
         viewMode,
         systemFonts,
         canUndo: history.length > 0,
@@ -422,14 +536,19 @@ export const DesignerProvider: React.FC<{
         setSnapToGrid,
         setGridSizeMm,
         setShowGuides,
+        setShowRulers,
+        setCursorPos,
         setViewMode,
         setActiveTool,
         updateReport,
         addElement,
         updateElement,
+        updateSection,
         deleteSelectedElements,
         duplicateSelectedElements,
         moveSelectedElements,
+        rotateSelectedElements,
+        reorderElement,
         alignSelectedElements,
         distributeSelectedElements,
         undo,

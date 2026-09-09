@@ -196,13 +196,35 @@ export interface TableElement extends BaseElement {
   groupBy?: string;
 }
 
+export type ChartType = 'bar' | 'line' | 'pie' | 'donut';
+
+export interface ChartDataPoint {
+  label: string;
+  value: number;
+}
+
+export interface ChartElement extends BaseElement {
+  type: 'chart';
+  chartType: ChartType;
+  title?: string;
+  dataSource?: string;
+  categoryField?: string;
+  valueField?: string;
+  data?: ChartDataPoint[];
+  colors?: string[];
+  showLegend?: boolean;
+  showLabels?: boolean;
+  showGrid?: boolean;
+}
+
 export type ReportElement =
   | TextElement
   | ShapeElement
   | ImageElement
   | BarcodeElement
   | QRCodeElement
-  | TableElement;
+  | TableElement
+  | ChartElement;
 
 export interface ParameterDefinition {
   name: string;

@@ -11,7 +11,7 @@ function createWindow() {
     height: 900,
     minWidth: 1024,
     minHeight: 700,
-    title: 'NextReport Studio - Professional Report Designer',
+    title: 'NovaReport Studio - Professional Report Designer',
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       nodeIntegration: false,

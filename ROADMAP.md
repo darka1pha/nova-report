@@ -85,24 +85,24 @@ Nova Report is designed from the ground up as a **commercial-grade, decoupled re
 
 ---
 
-### Phase 2 — Visual Designer Canvas & Interaction Engine `[IN PROGRESS]`
+### Phase 2 — Visual Designer Canvas & Interaction Engine `[COMPLETED]`
 
 **Goal**: Deliver a desktop publishing canvas with fluid positioning, snapping, and undo/redo history.
 
 - [x] Canvas coordinate transforms with millimeter/pixel unit converters.
 - [x] Interactive zoom controls (25%, 50%, 75%, 100%, 125%, 150%, 200%, Fit Width, Fit Page).
-- [x] Dynamic visual rulers with millimeter calibrations.
+- [x] Dynamic visual rulers with millimeter calibrations and live cursor trackers.
 - [x] Element selection, bounding box highlighting, and multi-handle resizing (8 handles).
 - [x] Drag-and-drop element repositioning with real-time coordinate inspection.
 - [x] Command/History pattern for undo/redo (`AddElementCommand`, `MoveCommand`, `ResizeCommand`, `DeleteCommand`).
-- [x] Keyboard shortcuts (`Ctrl+Z`, `Ctrl+Y`, `Ctrl+C`, `Ctrl+V`, `Delete`, `Arrow Keys` for nudging).
-- [ ] Magnetic snapping to grid (5mm / 10mm increments) and smart alignment guide lines.
-- [ ] Multi-element selection box (rubber-band drag selection) and group/ungroup operations.
-- [ ] Element rotation handle (0° to 360° free rotation).
+- [x] Keyboard shortcuts (`Ctrl+Z`, `Ctrl+Y`, `Ctrl+C`, `Ctrl+V`, `Delete`, `Arrow Keys` for nudging) and Interactive Shortcuts Cheat Sheet.
+- [x] Magnetic snapping to grid (2mm / 5mm / 10mm increments) and dynamic magenta alignment guide lines.
+- [x] Multi-element selection box (rubber-band marquee drag selection) and layer order operations.
+- [x] Element rotation handle (0° to 360° free rotation with 15° Shift-snapping and angle badge).
 
 ---
 
-### Phase 3 — Plugin-Oriented Element Architecture `[IN PROGRESS]`
+### Phase 3 — Plugin-Oriented Element Architecture `[COMPLETED]`
 
 **Goal**: Support a plugin-oriented component model for static and dynamic report controls.
 
@@ -118,11 +118,13 @@ Nova Report is designed from the ground up as a **commercial-grade, decoupled re
 - [x] **Image Element**:
   - [x] Local files, Base64 data URIs, and remote HTTPS URLs.
   - [x] Sizing modes: `fit`, `stretch`, `center`, and `preserveAspectRatio`.
-- [ ] **Barcode & QR Code Element**:
-  - [ ] 2D QR Code generator (built into `@report/layout` without external binary dependencies).
-  - [ ] 1D Linear Barcodes (Code 128, Code 39, EAN-13, UPC-A) rendered as vector SVG.
-- [ ] **Plugin Registry API**:
-  - [ ] `registerElementDefinition({ type, metadata, inspector, renderer, exporter })` enabling 3rd-party community elements.
+- [x] **Barcode & QR Code Element**:
+  - [x] 2D QR Code generator (built into `@report/layout` without external binary dependencies; ISO/IEC 18004 standard).
+  - [x] 1D Linear Barcodes (Code 128, Code 39, EAN-13, UPC-A) rendered as vector SVG and vector PDF.
+- [x] **Native Vector Chart Element**:
+  - [x] Bar Chart, Line Chart, Pie Chart, Donut Chart with customizable palettes, axes, and legends.
+  - [x] Dynamic data source binding (`dataSource`, `categoryField`, `valueField`) or inline static data.
+  - [x] Vector parity across React Viewer, HTML Exporter, and PDF Exporter.
 
 ---
 

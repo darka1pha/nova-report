@@ -10,7 +10,13 @@ import type {
   LayoutBarcodeElement,
   LayoutQRCodeElement,
   LayoutTableElementInstance,
+  LayoutChartElement,
   ResolvedBorders
+} from '@report/core';
+import {
+  encodeBarcode,
+  generateQRCodeMatrix,
+  qrcodeToRects
 } from '@report/core';
 
 export class PdfExporter implements ReportExporter {
@@ -29,7 +35,7 @@ export class PdfExporter implements ReportExporter {
           autoFirstPage: false,
           info: {
             Title: options?.title || renderedDoc.reportName,
-            Author: options?.author || 'NextReport Engine'
+            Author: options?.author || 'NovaReport Engine'
           }
         });
 
@@ -82,6 +88,9 @@ export class PdfExporter implements ReportExporter {
         break;
       case 'table':
         this.renderTableElement(doc, element as LayoutTableElementInstance);
+        break;
+      case 'chart':
+        this.renderChartElement(doc, element as LayoutChartElement);
         break;
     }
   }
@@ -211,32 +220,255 @@ export class PdfExporter implements ReportExporter {
 
   private renderBarcodeElement(doc: any, el: LayoutBarcodeElement) {
     doc.save();
-    doc.rect(el.xPt, el.yPt, el.widthPt, el.heightPt).fill(el.backgroundColor || '#ffffff');
-    doc.font('Helvetica-Bold').fontSize(el.heightPt * 0.4).fillColor(el.barColor || '#000000');
-    doc.text('||| | |||| | ||', el.xPt, el.yPt + el.heightPt * 0.1, {
-      width: el.widthPt,
-      align: 'center'
-    });
-    if (el.includeText) {
-      doc.font('Helvetica').fontSize(el.heightPt * 0.25).fillColor(el.barColor || '#000000');
-      doc.text(el.value, el.xPt, el.yPt + el.heightPt * 0.6, {
+    const bgColor = el.backgroundColor || '#ffffff';
+    const barColor = el.barColor || '#000000';
+
+    doc.rect(el.xPt, el.yPt, el.widthPt, el.heightPt).fill(bgColor);
+
+    try {
+      const barcode = encodeBarcode(el.format, el.value);
+      const totalModules = barcode.totalModules;
+      if (totalModules > 0) {
+        const textHeight = el.includeText ? Math.min(10, el.heightPt * 0.22) : 0;
+        const barHeight = el.heightPt - textHeight - 2;
+        const moduleWidth = el.widthPt / totalModules;
+
+        let inBar = false;
+        let barStart = 0;
+
+        doc.fillColor(barColor);
+        for (let i = 0; i < totalModules; i++) {
+          if (barcode.modules[i]) {
+            if (!inBar) {
+              inBar = true;
+              barStart = i;
+            }
+          } else {
+            if (inBar) {
+              const barW = (i - barStart) * moduleWidth;
+              const barX = el.xPt + barStart * moduleWidth;
+              doc.rect(barX, el.yPt + 1, barW, barHeight).fill(barColor);
+              inBar = false;
+            }
+          }
+        }
+
+        if (inBar) {
+          const barW = (totalModules - barStart) * moduleWidth;
+          const barX = el.xPt + barStart * moduleWidth;
+          doc.rect(barX, el.yPt + 1, barW, barHeight).fill(barColor);
+        }
+
+        if (el.includeText) {
+          doc.font('Helvetica').fontSize(Math.max(6, textHeight * 0.9)).fillColor(barColor);
+          doc.text(barcode.value, el.xPt, el.yPt + barHeight + 2, {
+            width: el.widthPt,
+            align: 'center'
+          });
+        }
+      }
+    } catch {
+      // Fallback
+      doc.font('Helvetica').fontSize(8).fillColor(barColor).text(el.value, el.xPt, el.yPt + el.heightPt / 2, {
         width: el.widthPt,
         align: 'center'
       });
     }
+
+    this.drawBorders(doc, el.xPt, el.yPt, el.widthPt, el.heightPt, el.borders);
     doc.restore();
   }
 
   private renderQRCodeElement(doc: any, el: LayoutQRCodeElement) {
     doc.save();
-    doc.rect(el.xPt, el.yPt, el.widthPt, el.heightPt).fill(el.lightColor || '#ffffff');
-    // Draw QR outer squares
-    const s = Math.min(el.widthPt, el.heightPt);
-    const dark = el.darkColor || '#000000';
-    doc.rect(el.xPt + s * 0.1, el.yPt + s * 0.1, s * 0.25, s * 0.25).fill(dark);
-    doc.rect(el.xPt + s * 0.65, el.yPt + s * 0.1, s * 0.25, s * 0.25).fill(dark);
-    doc.rect(el.xPt + s * 0.1, el.yPt + s * 0.65, s * 0.25, s * 0.25).fill(dark);
-    doc.rect(el.xPt + s * 0.4, el.yPt + s * 0.4, s * 0.2, s * 0.2).fill(dark);
+    const lightColor = el.lightColor || '#ffffff';
+    const darkColor = el.darkColor || '#000000';
+
+    doc.rect(el.xPt, el.yPt, el.widthPt, el.heightPt).fill(lightColor);
+
+    try {
+      const matrix = generateQRCodeMatrix(el.value, (el.errorCorrectionLevel || 'M') as any);
+      const rects = qrcodeToRects(matrix, el.xPt, el.yPt, el.widthPt, el.heightPt, 1);
+      doc.fillColor(darkColor);
+      for (const r of rects) {
+        doc.rect(r.x, r.y, r.width, r.height).fill(darkColor);
+      }
+    } catch {
+      doc.font('Helvetica').fontSize(8).fillColor(darkColor).text(el.value, el.xPt, el.yPt + el.heightPt / 2, {
+        width: el.widthPt,
+        align: 'center'
+      });
+    }
+
+    this.drawBorders(doc, el.xPt, el.yPt, el.widthPt, el.heightPt, el.borders);
+    doc.restore();
+  }
+
+  private renderChartElement(doc: any, el: LayoutChartElement) {
+    doc.save();
+    const chart = el.chart;
+
+    // Background and border
+    doc.rect(el.xPt, el.yPt, el.widthPt, el.heightPt).fill('#ffffff');
+
+    // Title
+    if (chart.title) {
+      doc.font('Helvetica-Bold').fontSize(9).fillColor('#1e293b');
+      doc.text(chart.title, el.xPt, el.yPt + 5, {
+        width: el.widthPt,
+        align: 'center'
+      });
+    }
+
+    const plotX = el.xPt + chart.plotArea.x;
+
+    if (chart.chartType === 'bar') {
+      // Y-axis gridlines
+      for (const tick of chart.yTicks || []) {
+        const ty = el.yPt + tick.y;
+        doc
+          .strokeColor('#e2e8f0')
+          .lineWidth(0.5)
+          .moveTo(plotX, ty)
+          .lineTo(plotX + chart.plotArea.width, ty)
+          .stroke();
+
+        doc.font('Helvetica').fontSize(6.5).fillColor('#64748b');
+        doc.text(tick.label, el.xPt, ty - 3, {
+          width: chart.plotArea.x - 3,
+          align: 'right'
+        });
+      }
+
+      // X-axis line
+      const axisY = el.yPt + chart.plotArea.y + chart.plotArea.height;
+      doc
+        .strokeColor('#94a3b8')
+        .lineWidth(0.75)
+        .moveTo(plotX, axisY)
+        .lineTo(plotX + chart.plotArea.width, axisY)
+        .stroke();
+
+      // Bars
+      for (const bar of chart.bars || []) {
+        doc.rect(el.xPt + bar.x, el.yPt + bar.y, bar.width, bar.height).fill(bar.color);
+
+        doc.font('Helvetica-Bold').fontSize(6).fillColor('#334155');
+        doc.text(String(bar.value), el.xPt + bar.x - 4, el.yPt + bar.y - 7, {
+          width: bar.width + 8,
+          align: 'center'
+        });
+      }
+
+      // X-labels
+      for (const xl of chart.xLabels || []) {
+        doc.font('Helvetica').fontSize(6.5).fillColor('#475569');
+        doc.text(xl.label, el.xPt + xl.x - 15, axisY + 3, {
+          width: 30,
+          align: 'center'
+        });
+      }
+    } else if (chart.chartType === 'line') {
+      // Y-axis gridlines
+      for (const tick of chart.yTicks || []) {
+        const ty = el.yPt + tick.y;
+        doc
+          .strokeColor('#e2e8f0')
+          .lineWidth(0.5)
+          .moveTo(plotX, ty)
+          .lineTo(plotX + chart.plotArea.width, ty)
+          .stroke();
+
+        doc.font('Helvetica').fontSize(6.5).fillColor('#64748b');
+        doc.text(tick.label, el.xPt, ty - 3, {
+          width: chart.plotArea.x - 3,
+          align: 'right'
+        });
+      }
+
+      const axisY = el.yPt + chart.plotArea.y + chart.plotArea.height;
+      doc
+        .strokeColor('#94a3b8')
+        .lineWidth(0.75)
+        .moveTo(plotX, axisY)
+        .lineTo(plotX + chart.plotArea.width, axisY)
+        .stroke();
+
+      // Draw line path
+      const points = chart.linePoints || [];
+      if (points.length > 1) {
+        doc.strokeColor(chart.colors[0] || '#2563eb').lineWidth(1.5);
+        doc.moveTo(el.xPt + points[0]!.x, el.yPt + points[0]!.y);
+        for (let i = 1; i < points.length; i++) {
+          doc.lineTo(el.xPt + points[i]!.x, el.yPt + points[i]!.y);
+        }
+        doc.stroke();
+      }
+
+      // Draw points
+      for (const pt of points) {
+        doc.circle(el.xPt + pt.x, el.yPt + pt.y, 2.5).fillAndStroke('#ffffff', pt.color);
+        doc.font('Helvetica-Bold').fontSize(6).fillColor('#334155');
+        doc.text(String(pt.value), el.xPt + pt.x - 10, el.yPt + pt.y - 8, {
+          width: 20,
+          align: 'center'
+        });
+      }
+
+      for (const xl of chart.xLabels || []) {
+        doc.font('Helvetica').fontSize(6.5).fillColor('#475569');
+        doc.text(xl.label, el.xPt + xl.x - 15, axisY + 3, {
+          width: 30,
+          align: 'center'
+        });
+      }
+    } else if (chart.chartType === 'pie' || chart.chartType === 'donut') {
+      const cx = el.xPt + el.widthPt / 2;
+      const cy = el.yPt + (chart.title ? 18 : 6) + chart.plotArea.height / 2;
+      const radius = Math.min(chart.plotArea.width, chart.plotArea.height) / 2 - 4;
+
+      for (const slice of chart.pieSlices || []) {
+        // Draw slice wedge with polygon segments
+        const step = 0.05;
+        const totalAngle = slice.endAngle - slice.startAngle;
+        if (totalAngle > 0.01) {
+          doc.save();
+          doc.moveTo(cx, cy);
+          for (let a = slice.startAngle; a <= slice.endAngle + 0.01; a += step) {
+            const angle = Math.min(a, slice.endAngle);
+            doc.lineTo(cx + radius * Math.cos(angle), cy + radius * Math.sin(angle));
+          }
+          doc.closePath();
+          doc.fillColor(slice.color).fill();
+          doc.restore();
+        }
+      }
+
+      // If donut, punch hole
+      if (chart.chartType === 'donut') {
+        doc.circle(cx, cy, radius * 0.55).fill('#ffffff');
+      }
+    }
+
+    // Legend at bottom
+    if (chart.legend && chart.legend.length > 0) {
+      const legendY = el.yPt + el.heightPt - 8;
+      const totalItems = chart.legend.length;
+      const itemWidth = Math.min(60, el.widthPt / totalItems);
+      const startX = el.xPt + (el.widthPt - itemWidth * totalItems) / 2;
+
+      chart.legend.forEach((item, idx) => {
+        const ix = startX + idx * itemWidth;
+        doc.rect(ix, legendY - 5, 5, 5).fill(item.color);
+        doc.font('Helvetica').fontSize(6).fillColor('#475569');
+        doc.text(item.label, ix + 7, legendY - 5, {
+          width: itemWidth - 8,
+          lineBreak: false
+        });
+      });
+    }
+
+    this.drawBorders(doc, el.xPt, el.yPt, el.widthPt, el.heightPt, el.borders);
     doc.restore();
   }
 

@@ -117,7 +117,7 @@ async function main() {
 
 function printHelp() {
   console.log(`
-NextReport CLI
+NovaReport CLI
 
 Usage:
   report validate <report.json>

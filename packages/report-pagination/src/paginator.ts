@@ -53,7 +53,7 @@ export function paginateReport(
         if (laid) {
           pageElements.push({
             ...laid,
-            xPt: marginsPt.left + laid.xPt,
+            xPt: laid.xPt,
             yPt: marginsPt.top + laid.yPt
           });
         }
@@ -98,7 +98,7 @@ export function paginateReport(
       if (laid) {
         currentPage.elements.push({
           ...laid,
-          xPt: marginsPt.left + laid.xPt,
+          xPt: laid.xPt,
           yPt: currentBodyYPt + laid.yPt
         });
       }
@@ -122,16 +122,63 @@ export function paginateReport(
       currentBodyYPt = marginsPt.top + pageHeaderHeightPt;
     }
 
-    for (const element of section.elements) {
-      if (element.type === 'table') {
-        const laid = layoutElement(element, unit, context, pageDirection) as LayoutTableElementInstance;
+    const sectionHeightPt = unitToPt(section.height, unit);
+    const tableElements = section.elements.filter(e => e.type === 'table');
+
+    if (tableElements.length === 0) {
+      // Standard section with absolute positioned non-table elements
+      ensureVerticalSpace(Math.min(sectionHeightPt, bodyMaxYPt - (marginsPt.top + pageHeaderHeightPt)));
+      const sectionStartYPt = currentBodyYPt;
+      let maxElemExtentPt = sectionHeightPt;
+
+      for (const element of section.elements) {
+        const laid = layoutElement(element, unit, context, pageDirection);
+        if (!laid) continue;
+
+        currentPage.elements.push({
+          ...laid,
+          xPt: laid.xPt,
+          yPt: sectionStartYPt + laid.yPt
+        });
+
+        const elemBottom = laid.yPt + laid.heightPt;
+        if (elemBottom > maxElemExtentPt) {
+          maxElemExtentPt = elemBottom;
+        }
+      }
+
+      currentBodyYPt = sectionStartYPt + maxElemExtentPt;
+    } else {
+      // Section contains table(s) and potentially other elements
+      const sectionStartYPt = currentBodyYPt;
+      const nonTableElements = section.elements.filter(e => e.type !== 'table');
+
+      // 1. Layout elements positioned before or alongside tables
+      for (const element of nonTableElements) {
+        const laid = layoutElement(element, unit, context, pageDirection);
+        if (!laid) continue;
+
+        currentPage.elements.push({
+          ...laid,
+          xPt: laid.xPt,
+          yPt: sectionStartYPt + laid.yPt
+        });
+      }
+
+      // 2. Layout and paginate tables
+      for (const tableElement of tableElements) {
+        const laid = layoutElement(tableElement, unit, context, pageDirection) as LayoutTableElementInstance;
         if (!laid) continue;
 
         const table = laid.table;
         const headerRowsHeightPt = table.headerRows.reduce((a, b) => a + b.heightPt, 0);
         const footerRowsHeightPt = table.footerRows.reduce((a, b) => a + b.heightPt, 0);
 
-        // Render table rows chunk by chunk across pages
+        // Advance cursor to table start if table has explicit offset
+        if (laid.yPt > 0 && currentBodyYPt === sectionStartYPt) {
+          currentBodyYPt = sectionStartYPt + laid.yPt;
+        }
+
         let bodyRowIdx = 0;
         const totalBodyRows = table.bodyRows.length;
 
@@ -154,7 +201,7 @@ export function paginateReport(
               const rowY = tableChunkY;
               const remappedCells = hRow.cells.map(c => ({
                 ...c,
-                xPt: marginsPt.left + laid.xPt + c.xPt,
+                xPt: laid.xPt + c.xPt,
                 yPt: rowY
               }));
               chunkHeaderRows.push({
@@ -181,7 +228,7 @@ export function paginateReport(
             const rowY = tableChunkY;
             const remappedCells = bRow.cells.map(c => ({
               ...c,
-              xPt: marginsPt.left + laid.xPt + c.xPt,
+              xPt: laid.xPt + c.xPt,
               yPt: rowY
             }));
 
@@ -202,7 +249,7 @@ export function paginateReport(
               const rowY = tableChunkY;
               const remappedCells = fRow.cells.map(c => ({
                 ...c,
-                xPt: marginsPt.left + laid.xPt + c.xPt,
+                xPt: laid.xPt + c.xPt,
                 yPt: rowY
               }));
               chunkFooterRows.push({
@@ -217,7 +264,7 @@ export function paginateReport(
           // Construct the chunk table instance for this page
           const chunkTable: LayoutTable = {
             id: `${table.id}_page${currentPage.pageNumber}`,
-            xPt: marginsPt.left + laid.xPt,
+            xPt: laid.xPt,
             yPt: startTableY,
             widthPt: table.widthPt,
             heightPt: tableChunkY - startTableY,
@@ -230,7 +277,7 @@ export function paginateReport(
 
           currentPage.elements.push({
             ...laid,
-            xPt: marginsPt.left + laid.xPt,
+            xPt: laid.xPt,
             yPt: startTableY,
             table: chunkTable
           });
@@ -246,18 +293,6 @@ export function paginateReport(
             break;
           }
         }
-      } else {
-        // Non-table element
-        const laid = layoutElement(element, unit, context, pageDirection);
-        if (!laid) continue;
-
-        ensureVerticalSpace(laid.heightPt);
-        currentPage.elements.push({
-          ...laid,
-          xPt: marginsPt.left + laid.xPt,
-          yPt: currentBodyYPt + laid.yPt
-        });
-        currentBodyYPt += laid.heightPt;
       }
     }
 
@@ -277,7 +312,7 @@ export function paginateReport(
       if (laid) {
         currentPage.elements.push({
           ...laid,
-          xPt: marginsPt.left + laid.xPt,
+          xPt: laid.xPt,
           yPt: currentBodyYPt + laid.yPt
         });
       }
@@ -294,7 +329,7 @@ export function paginateReport(
         if (laid) {
           page.elements.push({
             ...laid,
-            xPt: marginsPt.left + laid.xPt,
+            xPt: laid.xPt,
             yPt: footerTopYPt + laid.yPt
           });
         }

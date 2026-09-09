@@ -6,6 +6,7 @@ import type {
   BarcodeElement,
   QRCodeElement,
   TableElement,
+  ChartElement,
   Unit,
   TextDirection
 } from '@report/schema';
@@ -15,6 +16,7 @@ import type { ReportDataContext } from '@report/data';
 import { resolveBorders, type ResolvedBorders } from './borders.js';
 import { measureAndWrapText } from './metrics.js';
 import { layoutTable, type LayoutTable } from './table.js';
+import { layoutChart, type LayoutChartData } from './chart-layout.js';
 
 export interface LayoutBaseElement {
   id: string;
@@ -74,13 +76,19 @@ export interface LayoutTableElementInstance extends LayoutBaseElement {
   table: LayoutTable;
 }
 
+export interface LayoutChartElement extends LayoutBaseElement {
+  type: 'chart';
+  chart: LayoutChartData;
+}
+
 export type LayoutElement =
   | LayoutTextElement
   | LayoutShapeElement
   | LayoutImageElement
   | LayoutBarcodeElement
   | LayoutQRCodeElement
-  | LayoutTableElementInstance;
+  | LayoutTableElementInstance
+  | LayoutChartElement;
 
 export function layoutElement(
   element: ReportElement,
@@ -272,6 +280,25 @@ export function layoutElement(
         style,
         direction,
         table: layout
+      };
+    }
+
+    case 'chart': {
+      const chartElem = element as ChartElement;
+      const chartLayout = layoutChart(chartElem, widthPt, heightPt, context);
+      return {
+        id: chartElem.id,
+        name: chartElem.name,
+        type: 'chart',
+        xPt,
+        yPt,
+        widthPt,
+        heightPt,
+        rotation: chartElem.rotation,
+        borders,
+        style,
+        direction,
+        chart: chartLayout
       };
     }
   }

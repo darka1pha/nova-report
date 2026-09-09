@@ -1,7 +1,7 @@
 {
   "name": "@report/cli",
   "version": "1.0.0",
-  "description": "NextReport CLI for validating, rendering, and exporting reports headlessly",
+  "description": "NovaReport CLI for validating, rendering, and exporting reports headlessly",
   "type": "module",
   "bin": {
     "report": "./dist/bin.js"

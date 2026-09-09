@@ -9,7 +9,7 @@ export class XlsxExporter implements ReportExporter {
 
   async export(renderedDoc: RenderedDocument, _options?: ExportOptions): Promise<Uint8Array> {
     const workbook = new ExcelJS.Workbook();
-    workbook.creator = 'NextReport Engine';
+    workbook.creator = 'NovaReport Engine';
     workbook.created = new Date();
 
     const sheet = workbook.addWorksheet(renderedDoc.reportName.substring(0, 31) || 'Report');

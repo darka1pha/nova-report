@@ -40,12 +40,42 @@
           "taxId": "US-987654321"
         },
         "items": [
-          { "description": "Cloud Hosting Enterprise Cluster (Q3)", "quantity": 3, "unitPrice": 1250.00, "total": 3750.00 },
-          { "description": "Dedicated Database Instances (High-IOPS)", "quantity": 2, "unitPrice": 850.00, "total": 1700.00 },
-          { "description": "Global CDN Traffic & Accelerated Edge (TB)", "quantity": 15, "unitPrice": 45.00, "total": 675.00 },
-          { "description": "24/7 Priority Support & SLA Assurance", "quantity": 1, "unitPrice": 1500.00, "total": 1500.00 },
-          { "description": "Security Audit & Penetration Testing Report", "quantity": 1, "unitPrice": 2200.00, "total": 2200.00 },
-          { "description": "Custom API Integrations & Webhook Setup", "quantity": 8, "unitPrice": 175.00, "total": 1400.00 }
+          {
+            "description": "Cloud Hosting Enterprise Cluster (Q3)",
+            "quantity": 3,
+            "unitPrice": 1250.00,
+            "total": 3750.00
+          },
+          {
+            "description": "Dedicated Database Instances (High-IOPS)",
+            "quantity": 2,
+            "unitPrice": 850.00,
+            "total": 1700.00
+          },
+          {
+            "description": "Global CDN Traffic & Accelerated Edge (TB)",
+            "quantity": 15,
+            "unitPrice": 45.00,
+            "total": 675.00
+          },
+          {
+            "description": "24/7 Priority Support & SLA Assurance",
+            "quantity": 1,
+            "unitPrice": 1500.00,
+            "total": 1500.00
+          },
+          {
+            "description": "Security Audit & Penetration Testing Report",
+            "quantity": 1,
+            "unitPrice": 2200.00,
+            "total": 2200.00
+          },
+          {
+            "description": "Custom API Integrations & Webhook Setup",
+            "quantity": 8,
+            "unitPrice": 175.00,
+            "total": 1400.00
+          }
         ],
         "subtotal": 11225.00,
         "taxRate": 0.085,
@@ -75,7 +105,7 @@
         {
           "id": "elem-company-title",
           "type": "text",
-          "x": 0,
+          "x": 15,
           "y": 0,
           "width": 100,
           "height": 10,
@@ -90,7 +120,7 @@
         {
           "id": "elem-company-addr",
           "type": "text",
-          "x": 0,
+          "x": 15,
           "y": 10,
           "width": 90,
           "height": 18,
@@ -106,7 +136,7 @@
         {
           "id": "elem-invoice-title",
           "type": "text",
-          "x": 110,
+          "x": 125,
           "y": 0,
           "width": 70,
           "height": 12,
@@ -122,7 +152,7 @@
         {
           "id": "elem-invoice-meta",
           "type": "text",
-          "x": 110,
+          "x": 125,
           "y": 12,
           "width": 70,
           "height": 18,
@@ -140,7 +170,7 @@
           "id": "elem-header-divider",
           "type": "shape",
           "shapeType": "line",
-          "x": 0,
+          "x": 15,
           "y": 38,
           "width": 180,
           "height": 0.5,
@@ -159,7 +189,7 @@
           "id": "elem-billto-box",
           "type": "shape",
           "shapeType": "rounded-rectangle",
-          "x": 0,
+          "x": 15,
           "y": 2,
           "width": 180,
           "height": 30,
@@ -171,7 +201,7 @@
         {
           "id": "elem-billto-label",
           "type": "text",
-          "x": 4,
+          "x": 19,
           "y": 4,
           "width": 50,
           "height": 6,
@@ -186,7 +216,7 @@
         {
           "id": "elem-billto-details",
           "type": "text",
-          "x": 4,
+          "x": 19,
           "y": 10,
           "width": 110,
           "height": 18,
@@ -202,7 +232,7 @@
         {
           "id": "elem-qr",
           "type": "qrcode",
-          "x": 150,
+          "x": 165,
           "y": 4,
           "width": 24,
           "height": 24,
@@ -222,17 +252,29 @@
           "id": "elem-table-items",
           "type": "table",
           "name": "Line Items Table",
-          "x": 0,
+          "x": 15,
           "y": 2,
           "width": 180,
           "height": 70,
           "dataSource": "invoice.items",
           "repeatHeaderOnEveryPage": true,
           "columns": [
-            { "id": "col-desc", "width": 95 },
-            { "id": "col-qty", "width": 25 },
-            { "id": "col-price", "width": 30 },
-            { "id": "col-total", "width": 30 }
+            {
+              "id": "col-desc",
+              "width": 95
+            },
+            {
+              "id": "col-qty",
+              "width": 25
+            },
+            {
+              "id": "col-price",
+              "width": 30
+            },
+            {
+              "id": "col-total",
+              "width": 30
+            }
           ],
           "headerRows": [
             {
@@ -249,7 +291,12 @@
                     "color": "#ffffff",
                     "backgroundColor": "#1e3a8a",
                     "textAlign": "left",
-                    "padding": { "top": 2, "right": 4, "bottom": 2, "left": 4 }
+                    "padding": {
+                      "top": 2,
+                      "right": 4,
+                      "bottom": 2,
+                      "left": 4
+                    }
                   }
                 },
                 {
@@ -261,7 +308,12 @@
                     "color": "#ffffff",
                     "backgroundColor": "#1e3a8a",
                     "textAlign": "right",
-                    "padding": { "top": 2, "right": 4, "bottom": 2, "left": 4 }
+                    "padding": {
+                      "top": 2,
+                      "right": 4,
+                      "bottom": 2,
+                      "left": 4
+                    }
                   }
                 },
                 {
@@ -273,7 +325,12 @@
                     "color": "#ffffff",
                     "backgroundColor": "#1e3a8a",
                     "textAlign": "right",
-                    "padding": { "top": 2, "right": 4, "bottom": 2, "left": 4 }
+                    "padding": {
+                      "top": 2,
+                      "right": 4,
+                      "bottom": 2,
+                      "left": 4
+                    }
                   }
                 },
                 {
@@ -285,7 +342,12 @@
                     "color": "#ffffff",
                     "backgroundColor": "#1e3a8a",
                     "textAlign": "right",
-                    "padding": { "top": 2, "right": 4, "bottom": 2, "left": 4 }
+                    "padding": {
+                      "top": 2,
+                      "right": 4,
+                      "bottom": 2,
+                      "left": 4
+                    }
                   }
                 }
               ]
@@ -302,9 +364,18 @@
                   "style": {
                     "fontSize": 8.5,
                     "textAlign": "left",
-                    "padding": { "top": 1.5, "right": 4, "bottom": 1.5, "left": 4 },
+                    "padding": {
+                      "top": 1.5,
+                      "right": 4,
+                      "bottom": 1.5,
+                      "left": 4
+                    },
                     "borders": {
-                      "bottom": { "style": "solid", "width": 0.2, "color": "#e2e8f0" }
+                      "bottom": {
+                        "style": "solid",
+                        "width": 0.2,
+                        "color": "#e2e8f0"
+                      }
                     }
                   }
                 },
@@ -314,9 +385,18 @@
                   "style": {
                     "fontSize": 8.5,
                     "textAlign": "right",
-                    "padding": { "top": 1.5, "right": 4, "bottom": 1.5, "left": 4 },
+                    "padding": {
+                      "top": 1.5,
+                      "right": 4,
+                      "bottom": 1.5,
+                      "left": 4
+                    },
                     "borders": {
-                      "bottom": { "style": "solid", "width": 0.2, "color": "#e2e8f0" }
+                      "bottom": {
+                        "style": "solid",
+                        "width": 0.2,
+                        "color": "#e2e8f0"
+                      }
                     }
                   }
                 },
@@ -326,9 +406,18 @@
                   "style": {
                     "fontSize": 8.5,
                     "textAlign": "right",
-                    "padding": { "top": 1.5, "right": 4, "bottom": 1.5, "left": 4 },
+                    "padding": {
+                      "top": 1.5,
+                      "right": 4,
+                      "bottom": 1.5,
+                      "left": 4
+                    },
                     "borders": {
-                      "bottom": { "style": "solid", "width": 0.2, "color": "#e2e8f0" }
+                      "bottom": {
+                        "style": "solid",
+                        "width": 0.2,
+                        "color": "#e2e8f0"
+                      }
                     }
                   }
                 },
@@ -338,9 +427,18 @@
                   "style": {
                     "fontSize": 8.5,
                     "textAlign": "right",
-                    "padding": { "top": 1.5, "right": 4, "bottom": 1.5, "left": 4 },
+                    "padding": {
+                      "top": 1.5,
+                      "right": 4,
+                      "bottom": 1.5,
+                      "left": 4
+                    },
                     "borders": {
-                      "bottom": { "style": "solid", "width": 0.2, "color": "#e2e8f0" }
+                      "bottom": {
+                        "style": "solid",
+                        "width": 0.2,
+                        "color": "#e2e8f0"
+                      }
                     }
                   }
                 }
@@ -359,28 +457,36 @@
         {
           "id": "elem-notes-label",
           "type": "text",
-          "x": 0,
+          "x": 15,
           "y": 4,
           "width": 100,
           "height": 5,
           "text": "Notes & Payment Terms:",
-          "style": { "fontSize": 8, "fontWeight": "bold", "color": "#64748b" }
+          "style": {
+            "fontSize": 8,
+            "fontWeight": "bold",
+            "color": "#64748b"
+          }
         },
         {
           "id": "elem-notes-text",
           "type": "text",
-          "x": 0,
+          "x": 15,
           "y": 10,
           "width": 105,
           "height": 18,
           "text": "{{invoice.notes}}",
           "multiline": true,
-          "style": { "fontSize": 8.5, "color": "#475569", "lineHeight": 1.3 }
+          "style": {
+            "fontSize": 8.5,
+            "color": "#475569",
+            "lineHeight": 1.3
+          }
         },
         {
           "id": "elem-barcode",
           "type": "barcode",
-          "x": 0,
+          "x": 15,
           "y": 28,
           "width": 60,
           "height": 12,
@@ -393,7 +499,7 @@
           "id": "elem-summary-box",
           "type": "shape",
           "shapeType": "rectangle",
-          "x": 115,
+          "x": 130,
           "y": 2,
           "width": 65,
           "height": 38,
@@ -404,68 +510,88 @@
         {
           "id": "elem-subtotal-lbl",
           "type": "text",
-          "x": 118,
+          "x": 133,
           "y": 5,
           "width": 30,
           "height": 6,
           "text": "Subtotal:",
-          "style": { "fontSize": 8.5, "color": "#64748b" }
+          "style": {
+            "fontSize": 8.5,
+            "color": "#64748b"
+          }
         },
         {
           "id": "elem-subtotal-val",
           "type": "text",
-          "x": 148,
+          "x": 163,
           "y": 5,
           "width": 30,
           "height": 6,
           "text": "{{formatCurrency(invoice.subtotal)}}",
-          "style": { "fontSize": 8.5, "textAlign": "right", "fontWeight": "bold" }
+          "style": {
+            "fontSize": 8.5,
+            "textAlign": "right",
+            "fontWeight": "bold"
+          }
         },
         {
           "id": "elem-discount-lbl",
           "type": "text",
-          "x": 118,
+          "x": 133,
           "y": 11,
           "width": 30,
           "height": 6,
           "text": "Discount:",
-          "style": { "fontSize": 8.5, "color": "#64748b" }
+          "style": {
+            "fontSize": 8.5,
+            "color": "#64748b"
+          }
         },
         {
           "id": "elem-discount-val",
           "type": "text",
-          "x": 148,
+          "x": 163,
           "y": 11,
           "width": 30,
           "height": 6,
           "text": "-{{formatCurrency(invoice.discount)}}",
-          "style": { "fontSize": 8.5, "textAlign": "right", "color": "#dc2626" }
+          "style": {
+            "fontSize": 8.5,
+            "textAlign": "right",
+            "color": "#dc2626"
+          }
         },
         {
           "id": "elem-tax-lbl",
           "type": "text",
-          "x": 118,
+          "x": 133,
           "y": 17,
           "width": 30,
           "height": 6,
           "text": "Tax (8.5%):",
-          "style": { "fontSize": 8.5, "color": "#64748b" }
+          "style": {
+            "fontSize": 8.5,
+            "color": "#64748b"
+          }
         },
         {
           "id": "elem-tax-val",
           "type": "text",
-          "x": 148,
+          "x": 163,
           "y": 17,
           "width": 30,
           "height": 6,
           "text": "{{formatCurrency(invoice.taxAmount)}}",
-          "style": { "fontSize": 8.5, "textAlign": "right" }
+          "style": {
+            "fontSize": 8.5,
+            "textAlign": "right"
+          }
         },
         {
           "id": "elem-tot-line",
           "type": "shape",
           "shapeType": "line",
-          "x": 118,
+          "x": 133,
           "y": 24,
           "width": 59,
           "height": 0.5,
@@ -475,22 +601,31 @@
         {
           "id": "elem-grand-lbl",
           "type": "text",
-          "x": 118,
+          "x": 133,
           "y": 27,
           "width": 25,
           "height": 8,
           "text": "TOTAL:",
-          "style": { "fontSize": 10, "fontWeight": "bold", "color": "#1e3a8a" }
+          "style": {
+            "fontSize": 10,
+            "fontWeight": "bold",
+            "color": "#1e3a8a"
+          }
         },
         {
           "id": "elem-grand-val",
           "type": "text",
-          "x": 143,
+          "x": 158,
           "y": 27,
           "width": 35,
           "height": 8,
           "text": "{{formatCurrency(invoice.total)}}",
-          "style": { "fontSize": 11, "fontWeight": "bold", "color": "#1e3a8a", "textAlign": "right" }
+          "style": {
+            "fontSize": 11,
+            "fontWeight": "bold",
+            "color": "#1e3a8a",
+            "textAlign": "right"
+          }
         }
       ]
     },
@@ -504,7 +639,7 @@
           "id": "elem-footer-line",
           "type": "shape",
           "shapeType": "line",
-          "x": 0,
+          "x": 15,
           "y": 0,
           "width": 180,
           "height": 0.5,
@@ -514,22 +649,29 @@
         {
           "id": "elem-footer-left",
           "type": "text",
-          "x": 0,
+          "x": 15,
           "y": 3,
           "width": 100,
           "height": 6,
-          "text": "Acme Technologies Global Ltd. • Generated by NextReport Platform",
-          "style": { "fontSize": 7.5, "color": "#94a3b8" }
+          "text": "Acme Technologies Global Ltd. • Generated by NovaReport Platform",
+          "style": {
+            "fontSize": 7.5,
+            "color": "#94a3b8"
+          }
         },
         {
           "id": "elem-footer-page-num",
           "type": "text",
-          "x": 130,
+          "x": 145,
           "y": 3,
           "width": 50,
           "height": 6,
           "text": "Page {{pageNumber}} of {{totalPages}}",
-          "style": { "fontSize": 7.5, "color": "#94a3b8", "textAlign": "right" }
+          "style": {
+            "fontSize": 7.5,
+            "color": "#94a3b8",
+            "textAlign": "right"
+          }
         }
       ]
     }
