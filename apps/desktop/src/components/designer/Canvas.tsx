@@ -28,7 +28,8 @@ import {
   ArrowDown,
   Layers,
   Sparkles,
-  Database
+  Database,
+  Maximize2
 } from 'lucide-react';
 import { FieldPickerDropdown } from './FieldPickerDropdown';
 import { discoverReportDataSchema } from '@report/engine';
@@ -81,6 +82,7 @@ export const Canvas: React.FC = () => {
     sectionId: string;
     startY: number;
     initialHeight: number;
+    fillHeight: number;
   } | null>(null);
 
   const [rotatingState, setRotatingState] = useState<{
@@ -181,7 +183,18 @@ export const Canvas: React.FC = () => {
     // 0. Section Height Resizing
     if (sectionResizingState) {
       const dyMm = (e.clientY - sectionResizingState.startY) / (MM_TO_PX * zoom);
-      const newHeight = Math.max(10, snap(Math.round((sectionResizingState.initialHeight + dyMm) * 10) / 10));
+      let newHeight = Math.max(10, Math.round((sectionResizingState.initialHeight + dyMm) * 10) / 10);
+
+      // Magnetic snap to fillHeight if close (within 5mm)
+      if (
+        sectionResizingState.fillHeight > sectionResizingState.initialHeight &&
+        Math.abs(newHeight - sectionResizingState.fillHeight) <= 5
+      ) {
+        newHeight = sectionResizingState.fillHeight;
+      } else {
+        newHeight = snap(newHeight);
+      }
+
       updateSection(sectionResizingState.sectionId, { height: newHeight });
       return;
     }
@@ -334,13 +347,6 @@ export const Canvas: React.FC = () => {
           x: Math.round(newX * 10) / 10,
           y: Math.round(newY * 10) / 10
         });
-
-        // Auto-expand section if element is dragged near/past section bottom
-        const elemBottom = Math.round((newY + init.height) * 10) / 10;
-        if (currentSec && elemBottom > currentSec.height) {
-          const neededHeight = snap(Math.ceil(elemBottom + 5));
-          updateSection(currentSec.id, { height: neededHeight });
-        }
       });
 
       setActiveGuides(guides);
@@ -371,17 +377,25 @@ export const Canvas: React.FC = () => {
         width: Math.round(newW * 10) / 10,
         height: Math.round(newH * 10) / 10
       });
-
-      const currentSec = report.sections.find(s => s.id === dragState.sectionId);
-      const elemBottom = Math.round((newY + newH) * 10) / 10;
-      if (currentSec && elemBottom > currentSec.height) {
-        const neededHeight = snap(Math.ceil(elemBottom + 5));
-        updateSection(currentSec.id, { height: neededHeight });
-      }
     }
   };
 
   const handlePointerUp = () => {
+    // Check if moved or resized elements extended past section bottom
+    if (dragState) {
+      const currentSec = report.sections.find(s => s.id === dragState.sectionId);
+      if (currentSec) {
+        let maxBottom = currentSec.height;
+        for (const el of currentSec.elements) {
+          const b = el.y + el.height;
+          if (b > maxBottom) maxBottom = b;
+        }
+        if (maxBottom > currentSec.height) {
+          updateSection(currentSec.id, { height: Math.round(maxBottom * 10) / 10 });
+        }
+      }
+    }
+
     // Finish Marquee Selection
     if (marqueeState && pageRef.current) {
       const minX = Math.min(marqueeState.startX, marqueeState.currentX);
@@ -424,10 +438,12 @@ export const Canvas: React.FC = () => {
   const handlePointerDownSectionResize = (e: React.PointerEvent, section: SectionDefinition) => {
     e.stopPropagation();
     setSelectedSectionId(section.id);
+    const fillHeight = Math.round((section.height + unallocatedBodyMm) * 10) / 10;
     setSectionResizingState({
       sectionId: section.id,
       startY: e.clientY,
-      initialHeight: section.height
+      initialHeight: section.height,
+      fillHeight
     });
   };
 
@@ -535,7 +551,7 @@ export const Canvas: React.FC = () => {
   };
 
   // Handle Drop Field or Collection from Data Explorer onto Section
-  const handleSectionDrop = (e: React.DragEvent, sectionId: string) => {
+  const handleSectionDrop = (e: React.DragEvent, sectionId: string, isFromUnallocated = false) => {
     e.preventDefault();
     e.stopPropagation();
 
@@ -556,7 +572,11 @@ export const Canvas: React.FC = () => {
       const rawDropXMm = Math.max(0, dropXPx / (MM_TO_PX * zoom));
       const rawDropYMm = Math.max(0, dropYPx / (MM_TO_PX * zoom));
       const dropXMm = snap(Math.round(rawDropXMm * 10) / 10);
-      const dropYMm = snap(Math.round(rawDropYMm * 10) / 10);
+      let dropYMm = snap(Math.round(rawDropYMm * 10) / 10);
+
+      if (isFromUnallocated) {
+        dropYMm = snap(Math.round((targetSec.height + dropYMm) * 10) / 10);
+      }
 
       if (data.type === 'data-field') {
         const field = data.field;
@@ -685,14 +705,33 @@ export const Canvas: React.FC = () => {
       >
         {/* Section Tag */}
         <div
-          className={`absolute left-1 top-1 text-[9px] font-mono px-1.5 py-0.5 rounded shadow z-20 pointer-events-none flex items-center gap-1 ${
+          className={`absolute left-1 top-1 text-[9px] font-mono px-1.5 py-0.5 rounded shadow z-20 flex items-center gap-1.5 ${
             isSecSelected
-              ? 'bg-blue-600 text-white font-bold'
-              : 'bg-gray-800 text-gray-200 opacity-60 group-hover:opacity-100'
+              ? 'bg-blue-600 text-white font-bold pointer-events-auto'
+              : 'bg-gray-800 text-gray-200 opacity-60 group-hover:opacity-100 pointer-events-none'
           }`}
         >
           <span>{section.name}</span>
           <span className="opacity-75 font-normal">({section.height}mm)</span>
+          {isSecSelected && unallocatedBodyMm > 1 && (
+            <button
+              onPointerDown={e => e.stopPropagation()}
+              onClick={e => {
+                e.stopPropagation();
+                const newH = Math.round((section.height + unallocatedBodyMm) * 10) / 10;
+                updateSection(section.id, { height: newH });
+                const primaryTable = section.elements.find(el => el.type === 'table');
+                if (primaryTable) {
+                  const newTableH = Math.round((primaryTable.height + unallocatedBodyMm) * 10) / 10;
+                  updateElement(primaryTable.id, { height: newTableH });
+                }
+              }}
+              className="ml-1 px-1.5 py-0.2 bg-white text-blue-700 hover:bg-blue-100 rounded text-[8px] font-semibold transition cursor-pointer shadow-xs"
+              title={`Expand ${section.name} to fill unallocated page space (+${unallocatedBodyMm.toFixed(0)}mm)`}
+            >
+              ⤢ Fill Page (+{unallocatedBodyMm.toFixed(0)}mm)
+            </button>
+          )}
         </div>
 
         {/* Section Elements */}
@@ -933,7 +972,7 @@ export const Canvas: React.FC = () => {
             ))}
 
             {/* Section Containers */}
-            <div className="flex flex-col w-full h-full">
+            <div className="flex flex-col w-full" style={{ minHeight: `${scaledHeightPx}px` }}>
               {/* Top Margin Area (Visual Boundary matching Preview top margin) */}
               {margins.top > 0 && (
                 <div
@@ -955,6 +994,16 @@ export const Canvas: React.FC = () => {
               {/* Unallocated Page Body Guide (when detail/body does not fill down to footer) */}
               {unallocatedBodyMm > 2 && (
                 <div
+                  onDragOver={handleSectionDragOver}
+                  onDrop={e => {
+                    const targetSec =
+                      (selectedSectionId && bodySections.find(s => s.id === selectedSectionId)) ||
+                      bodySections.find(s => s.type === 'detail') ||
+                      bodySections[bodySections.length - 1];
+                    if (targetSec) {
+                      handleSectionDrop(e, targetSec.id, true);
+                    }
+                  }}
                   className="w-full border-b border-dashed border-studio-200 bg-studio-50/40 relative flex items-center justify-center group/unalloc transition-colors hover:bg-blue-50/30 select-none"
                   style={{ height: `${unallocatedBodyMm * MM_TO_PX * zoom}px`, minHeight: '24px' }}
                 >
@@ -963,18 +1012,49 @@ export const Canvas: React.FC = () => {
                     {bodySections.length > 0 && (
                       <button
                         onClick={() => {
-                          const targetSec = bodySections.find(s => s.type === 'detail') || bodySections[bodySections.length - 1];
+                          const targetSec =
+                            (selectedSectionId && bodySections.find(s => s.id === selectedSectionId)) ||
+                            bodySections.find(s => s.type === 'detail') ||
+                            bodySections[bodySections.length - 1];
                           if (targetSec) {
-                            updateSection(targetSec.id, { height: targetSec.height + unallocatedBodyMm });
+                            const newH = Math.round((targetSec.height + unallocatedBodyMm) * 10) / 10;
+                            updateSection(targetSec.id, { height: newH });
+                            const primaryTable = targetSec.elements.find(el => el.type === 'table');
+                            if (primaryTable) {
+                              const newTableH = Math.round((primaryTable.height + unallocatedBodyMm) * 10) / 10;
+                              updateElement(primaryTable.id, { height: newTableH });
+                            }
                           }
                         }}
-                        className="px-2 py-0.5 rounded bg-white hover:bg-blue-600 hover:text-white border border-studio-300 hover:border-blue-600 text-[10px] font-medium transition shadow-xs cursor-pointer"
-                        title="Expand Detail section height to fill the printable page"
+                        className="px-2.5 py-1 rounded bg-blue-600 hover:bg-blue-500 text-white font-medium text-xs shadow transition cursor-pointer flex items-center gap-1.5"
+                        title="Expand Section height to fill the printable page"
                       >
-                        + Expand Detail to Fill Page
+                        <Maximize2 size={12} />
+                        <span>
+                          Expand{' '}
+                          {
+                            ((selectedSectionId && bodySections.find(s => s.id === selectedSectionId)) ||
+                              bodySections.find(s => s.type === 'detail') ||
+                              bodySections[bodySections.length - 1])?.name || 'Detail'
+                          }{' '}
+                          to Fill Page (+{unallocatedBodyMm.toFixed(0)}mm)
+                        </span>
                       </button>
                     )}
                   </div>
+                </div>
+              )}
+
+              {/* Visual Page Break Guide Line when content exceeds 1 page */}
+              {totalBodyHeightMm + totalHeaderHeightMm + totalFooterHeightMm > printableHeightMm + 2 && (
+                <div
+                  className="absolute left-0 right-0 z-30 pointer-events-none flex items-center justify-center"
+                  style={{ top: `${(pageHeightMm - margins.bottom - totalFooterHeightMm) * MM_TO_PX * zoom}px` }}
+                >
+                  <div className="w-full border-b-2 border-dashed border-rose-500/80" />
+                  <span className="absolute bg-rose-600 text-white text-[9px] font-semibold px-2.5 py-0.5 rounded-full shadow tracking-wider uppercase">
+                    Page 1 Cutoff — Content below flows to Page 2
+                  </span>
                 </div>
               )}
 
@@ -984,7 +1064,7 @@ export const Canvas: React.FC = () => {
               {/* Bottom Margin Area (Visual Boundary matching Preview bottom margin) */}
               {margins.bottom > 0 && (
                 <div
-                  className="w-full bg-blue-50/20 border-t border-dashed border-blue-400 relative select-none flex items-center px-3"
+                  className="w-full bg-blue-50/20 border-t border-dashed border-blue-400 relative select-none flex items-center px-3 mt-auto"
                   style={{ height: `${margins.bottom * MM_TO_PX * zoom}px` }}
                 >
                   <span className="text-[9px] font-mono text-blue-400 select-none">

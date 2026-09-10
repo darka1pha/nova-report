@@ -9,7 +9,7 @@ import { ReportError } from './errors.js';
 
 export interface RenderReportOptions {
   report: ReportDefinition | string;
-  data?: Record<string, any>;
+  data?: Record<string, any> | any[];
   parameters?: Record<string, any>;
 }
 

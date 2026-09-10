@@ -38,7 +38,14 @@ export class Evaluator {
       case 'Member': {
         const target = this.evaluate(node.object, context);
         if (target === null || target === undefined) return undefined;
-        return target[node.property];
+        let prop = node.property;
+        if (node.computed && typeof target === 'object' && !(prop in target)) {
+          const resolved = this.resolveIdentifier(prop, context);
+          if (resolved !== undefined) {
+            prop = String(resolved);
+          }
+        }
+        return target[prop];
       }
 
       case 'Array':

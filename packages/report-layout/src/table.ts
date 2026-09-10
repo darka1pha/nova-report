@@ -1,7 +1,7 @@
 import type { TableElement, Unit, TextDirection } from '@report/schema';
 import { unitToPt } from '@report/schema';
 import { interpolateTemplate } from '@report/expression';
-import type { ReportDataContext } from '@report/data';
+import { resolvePathValue, type ReportDataContext } from '@report/data';
 import { resolveBorders, type ResolvedBorders } from './borders.js';
 import { measureAndWrapText } from './metrics.js';
 
@@ -144,16 +144,31 @@ export function layoutTable(
     } else {
       items = [];
     }
+  } else if (context.data) {
+    // If table has no explicit dataSource, check if context.data is directly an array
+    // or has standard array aliases (data, items, rows)
+    if (Array.isArray(context.data)) {
+      items = context.data;
+    } else if (Array.isArray(context.data.items)) {
+      items = context.data.items;
+    } else if (Array.isArray(context.data.data)) {
+      items = context.data.data;
+    } else if (Array.isArray(context.data.rows)) {
+      items = context.data.rows;
+    }
   }
 
   for (let itemIdx = 0; itemIdx < items.length; itemIdx++) {
     const item = items[itemIdx];
     const itemContext = {
-      ...context.data,
+      ...(typeof context.data === 'object' && context.data !== null && !Array.isArray(context.data) ? context.data : {}),
       ...context.parameters,
       ...context.variables,
+      ...(typeof item === 'object' && item !== null ? item : {}),
       item,
+      row: item,
       index: itemIdx,
+      _index: itemIdx,
       data: context.data
     };
 
@@ -314,16 +329,4 @@ export function layoutTable(
     repeatHeaderOnEveryPage: table.repeatHeaderOnEveryPage ?? true,
     keepTogether: table.keepTogether ?? false
   };
-}
-
-function resolvePathValue(obj: any, path: string): any {
-  if (!obj || typeof obj !== 'object') return undefined;
-  if (path in obj) return obj[path];
-  const parts = path.split('.');
-  let curr = obj;
-  for (const p of parts) {
-    if (curr === null || curr === undefined) return undefined;
-    curr = curr[p];
-  }
-  return curr;
 }

@@ -123,20 +123,30 @@ export class Parser {
 
     while (true) {
       if (this.matchPunctuation('.')) {
-        const propToken = this.consume('IDENTIFIER', "Expected property name after '.'");
+        const next = this.peek();
+        let propValue = '';
+        if (next.type === 'IDENTIFIER' || next.type === 'NUMBER') {
+          propValue = String(this.advance().value);
+        } else {
+          throw new Error(`Expected property name or index after '.' at position ${next.pos}`);
+        }
         expr = {
           type: 'Member',
           object: expr,
-          property: propToken.value,
+          property: propValue,
           computed: false
         };
       } else if (this.matchPunctuation('[')) {
         const indexExpr = this.parseExpression();
         this.consumePunctuation(']', "Expected ']' after index");
+        const propVal =
+          (indexExpr as any).value !== undefined
+            ? String((indexExpr as any).value)
+            : (indexExpr as any).name || '';
         expr = {
           type: 'Member',
           object: expr,
-          property: (indexExpr as any).value !== undefined ? String((indexExpr as any).value) : '',
+          property: propVal,
           computed: true
         };
       } else if (this.matchPunctuation('(')) {
@@ -261,11 +271,6 @@ export class Parser {
 
   private previous(): Token {
     return this.tokens[this.current - 1]!;
-  }
-
-  private consume(type: string, message: string): Token {
-    if (this.check(type)) return this.advance();
-    throw new Error(`${message} at position ${this.peek().pos}`);
   }
 
   private consumePunctuation(char: string, message: string): Token {

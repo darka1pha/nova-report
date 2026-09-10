@@ -1,6 +1,6 @@
 import type { ReportDefinition, SectionDefinition } from '@report/schema';
 import { unitToPt } from '@report/schema';
-import type { ReportDataContext } from '@report/data';
+import { resolvePathValue, type ReportDataContext } from '@report/data';
 import {
   layoutElement,
   toPtInsets,
@@ -126,35 +126,172 @@ export function paginateReport(
     const tableElements = section.elements.filter(e => e.type === 'table');
 
     if (tableElements.length === 0) {
-      // Standard section with absolute positioned non-table elements
-      ensureVerticalSpace(Math.min(sectionHeightPt, bodyMaxYPt - (marginsPt.top + pageHeaderHeightPt)));
-      const sectionStartYPt = currentBodyYPt;
-      let maxElemExtentPt = sectionHeightPt;
+      // Check if this section should repeat for each record in an array (e.g. detail band)
+      const isRepeatingDetail =
+        section.type === 'detail' &&
+        (Boolean(section.dataSource) || Boolean(section.repeatForEachRecord));
 
-      for (const element of section.elements) {
-        const laid = layoutElement(element, unit, context, pageDirection);
-        if (!laid) continue;
+      if (isRepeatingDetail) {
+        let records: any[] | null = null;
+        if (section.dataSource) {
+          const val = resolvePathValue(context.data, section.dataSource);
+          if (Array.isArray(val)) records = val;
+        } else if (Array.isArray(context.data)) {
+          records = context.data;
+        } else if (section.repeatForEachRecord) {
+          if (Array.isArray(context.data?.items)) records = context.data.items;
+          else if (Array.isArray(context.data?.data)) records = context.data.data;
+          else if (Array.isArray(context.data?.rows)) records = context.data.rows;
+        }
 
-        currentPage.elements.push({
-          ...laid,
-          xPt: laid.xPt,
-          yPt: sectionStartYPt + laid.yPt
-        });
+        if (records && records.length > 0) {
+          for (let recordIdx = 0; recordIdx < records.length; recordIdx++) {
+            const record = records[recordIdx];
+            const recordContext: ReportDataContext = {
+              ...context,
+              data: {
+                ...(typeof context.data === 'object' && context.data !== null && !Array.isArray(context.data) ? context.data : {}),
+                ...(typeof record === 'object' && record !== null ? record : {}),
+                item: record,
+                row: record,
+                index: recordIdx,
+                _index: recordIdx
+              }
+            };
 
-        const elemBottom = laid.yPt + laid.heightPt;
-        if (elemBottom > maxElemExtentPt) {
-          maxElemExtentPt = elemBottom;
+            ensureVerticalSpace(Math.min(sectionHeightPt, bodyMaxYPt - (marginsPt.top + pageHeaderHeightPt)));
+            const sectionStartYPt = currentBodyYPt;
+            let maxElemExtentPt = sectionHeightPt;
+
+            for (const element of section.elements) {
+              const laid = layoutElement(element, unit, recordContext, pageDirection);
+              if (!laid) continue;
+
+              currentPage.elements.push({
+                ...laid,
+                xPt: laid.xPt,
+                yPt: sectionStartYPt + laid.yPt
+              });
+
+              const elemBottom = laid.yPt + laid.heightPt;
+              if (elemBottom > maxElemExtentPt) {
+                maxElemExtentPt = elemBottom;
+              }
+            }
+
+            currentBodyYPt = sectionStartYPt + maxElemExtentPt;
+          }
+          continue;
+        } else if (records && records.length === 0) {
+          // Empty records array - nothing to render for repeating detail section
+          continue;
         }
       }
 
-      currentBodyYPt = sectionStartYPt + maxElemExtentPt;
+      // Standard section with absolute positioned non-table elements
+      const pagePrintableTopPt = marginsPt.top + pageHeaderHeightPt;
+      const pagePrintableHeightPt = Math.max(50, bodyMaxYPt - pagePrintableTopPt);
+
+      // If the section doesn't fit on the current page, but would fit on a fresh new page:
+      if (
+        sectionHeightPt <= pagePrintableHeightPt &&
+        currentBodyYPt + sectionHeightPt > bodyMaxYPt &&
+        currentBodyYPt > pagePrintableTopPt + 1
+      ) {
+        currentPage = createNewPage(pages.length + 1);
+        pages.push(currentPage);
+        currentBodyYPt = pagePrintableTopPt;
+      }
+
+      const startPageIdx = pages.length - 1;
+      const sectionStartYPt = currentBodyYPt;
+      const spaceOnFirstPagePt = Math.max(0, bodyMaxYPt - sectionStartYPt);
+
+      // Sort elements by designer Y coordinate so they are processed in top-down order
+      const sortedElements = [...section.elements].sort((a, b) => a.y - b.y);
+
+      for (const element of sortedElements) {
+        const laid = layoutElement(element, unit, context, pageDirection);
+        if (!laid) continue;
+
+        const elemTopYPt = laid.yPt;
+        const elemHeightPt = laid.heightPt;
+
+        // Check if element fits on the starting page
+        if (elemTopYPt + elemHeightPt <= spaceOnFirstPagePt) {
+          // Fits on first page
+          pages[startPageIdx]!.elements.push({
+            ...laid,
+            xPt: laid.xPt,
+            yPt: sectionStartYPt + elemTopYPt
+          });
+        } else {
+          // Overflow onto Page 2 or subsequent pages
+          const remainingOffsetPt = elemTopYPt - spaceOnFirstPagePt;
+          const clampedOffsetPt = Math.max(0, remainingOffsetPt);
+          const pagesBeyond = 1 + Math.floor(clampedOffsetPt / pagePrintableHeightPt);
+          const offsetOnTargetPagePt = clampedOffsetPt % pagePrintableHeightPt;
+
+          const targetPageIdx = startPageIdx + pagesBeyond;
+          while (pages.length <= targetPageIdx) {
+            currentPage = createNewPage(pages.length + 1);
+            pages.push(currentPage);
+          }
+
+          const targetPage = pages[targetPageIdx]!;
+          targetPage.elements.push({
+            ...laid,
+            xPt: laid.xPt,
+            yPt: pagePrintableTopPt + offsetOnTargetPagePt
+          });
+        }
+      }
+
+      // Update currentPage and currentBodyYPt to the last page and its maximum element bottom
+      currentPage = pages[pages.length - 1]!;
+      if (pages.length - 1 === startPageIdx) {
+        let maxBottomPt = sectionHeightPt;
+        for (const elem of sortedElements) {
+          const laid = layoutElement(elem, unit, context, pageDirection);
+          if (laid) {
+            const b = laid.yPt + laid.heightPt;
+            if (b > maxBottomPt) maxBottomPt = b;
+          }
+        }
+        currentBodyYPt = sectionStartYPt + maxBottomPt;
+      } else {
+        let maxBottomPt = pagePrintableTopPt;
+        for (const elem of sortedElements) {
+          const laid = layoutElement(elem, unit, context, pageDirection);
+          if (laid) {
+            const b = laid.yPt + laid.heightPt;
+            if (b > maxBottomPt) maxBottomPt = b;
+          }
+        }
+        currentBodyYPt = maxBottomPt + 5;
+      }
     } else {
       // Section contains table(s) and potentially other elements
+      const sectionStartPageIdx = pages.length - 1;
+      const pagePrintableTopPt = marginsPt.top + pageHeaderHeightPt;
       const sectionStartYPt = currentBodyYPt;
       const nonTableElements = section.elements.filter(e => e.type !== 'table');
 
-      // 1. Layout elements positioned before or alongside tables
-      for (const element of nonTableElements) {
+      // Separate non-table elements into pre-table and post-table based on designer Y coordinate
+      const firstTable = tableElements[0]!;
+      const tableTopMm = firstTable.y;
+      const tableHeightMm = firstTable.height || 25;
+      const tableBottomMm = tableTopMm + tableHeightMm;
+
+      // Elements placed before or alongside the table in the designer
+      const preTableElements = nonTableElements.filter(e => e.y < tableBottomMm);
+      // Elements placed strictly below the table in the designer
+      const postTableElements = nonTableElements.filter(e => e.y >= tableBottomMm);
+
+      let maxPreTableExtentPt = 0;
+
+      // 1. Layout elements positioned before or alongside tables (exact designer coordinates)
+      for (const element of preTableElements) {
         const laid = layoutElement(element, unit, context, pageDirection);
         if (!laid) continue;
 
@@ -163,6 +300,11 @@ export function paginateReport(
           xPt: laid.xPt,
           yPt: sectionStartYPt + laid.yPt
         });
+
+        const b = laid.yPt + laid.heightPt;
+        if (b > maxPreTableExtentPt) {
+          maxPreTableExtentPt = b;
+        }
       }
 
       // 2. Layout and paginate tables
@@ -174,8 +316,8 @@ export function paginateReport(
         const headerRowsHeightPt = table.headerRows.reduce((a, b) => a + b.heightPt, 0);
         const footerRowsHeightPt = table.footerRows.reduce((a, b) => a + b.heightPt, 0);
 
-        // Advance cursor to table start if table has explicit offset
-        if (laid.yPt > 0 && currentBodyYPt === sectionStartYPt) {
+        // Advance cursor to table start based on table's designer Y offset
+        if (laid.yPt > 0) {
           currentBodyYPt = sectionStartYPt + laid.yPt;
         }
 
@@ -294,6 +436,39 @@ export function paginateReport(
           }
         }
       }
+
+      // 3. Layout elements positioned after tables (e.g. totals, signatures, notes)
+      const tableFinishYPt = currentBodyYPt;
+      let maxPostTableBottomPt = tableFinishYPt;
+
+      for (const element of postTableElements) {
+        const laid = layoutElement(element, unit, context, pageDirection);
+        if (!laid) continue;
+
+        const offsetBelowTablePt = Math.max(0, unitToPt(element.y - tableBottomMm, unit));
+        let targetYPt = tableFinishYPt + offsetBelowTablePt;
+
+        if (targetYPt + laid.heightPt > bodyMaxYPt && tableFinishYPt > pagePrintableTopPt + 1) {
+          currentPage = createNewPage(pages.length + 1);
+          pages.push(currentPage);
+          targetYPt = pagePrintableTopPt + offsetBelowTablePt;
+        }
+
+        currentPage.elements.push({
+          ...laid,
+          xPt: laid.xPt,
+          yPt: targetYPt
+        });
+
+        const elemBottom = targetYPt + laid.heightPt;
+        if (elemBottom > maxPostTableBottomPt) {
+          maxPostTableBottomPt = elemBottom;
+        }
+      }
+
+      // Set the final cursor for subsequent sections (ensuring section.height is honored if on starting page)
+      const minSectionBottomPt = pages.length - 1 === sectionStartPageIdx ? sectionStartYPt + sectionHeightPt : 0;
+      currentBodyYPt = Math.max(maxPostTableBottomPt, sectionStartYPt + maxPreTableExtentPt, minSectionBottomPt);
     }
 
     if (section.pageBreakAfter) {

@@ -47,6 +47,26 @@ export const DataSourcesModal: React.FC<{ isOpen: boolean; onClose: () => void }
     setSelectedIdx(dataSources.length);
   };
 
+  const handleAddArrayDataSource = () => {
+    const newDsName = `items_${Math.random().toString(36).substring(2, 6)}`;
+    updateReport(prev => ({
+      ...prev,
+      dataSources: [
+        ...prev.dataSources,
+        {
+          name: newDsName,
+          type: 'json',
+          data: [
+            { id: 1, name: 'Product A', category: 'Hardware', price: 120, quantity: 2 },
+            { id: 2, name: 'Product B', category: 'Software', price: 85, quantity: 5 },
+            { id: 3, name: 'Product C', category: 'Services', price: 210, quantity: 1 }
+          ]
+        }
+      ]
+    }));
+    setSelectedIdx(dataSources.length);
+  };
+
   const handleDeleteDataSource = (idx: number) => {
     updateReport(prev => ({
       ...prev,
@@ -73,36 +93,54 @@ export const DataSourcesModal: React.FC<{ isOpen: boolean; onClose: () => void }
           <div className="w-56 bg-studio-950 border-r border-studio-800 p-2 flex flex-col justify-between">
             <div className="space-y-1">
               <span className="text-[10px] font-semibold uppercase text-studio-500 px-2">Data Sources</span>
-              {dataSources.map((ds, idx) => (
-                <div
-                  key={ds.name}
-                  onClick={() => setSelectedIdx(idx)}
-                  className={`flex items-center justify-between px-2.5 py-1.5 rounded cursor-pointer text-xs ${
-                    selectedIdx === idx
-                      ? 'bg-blue-600 text-white font-medium'
-                      : 'text-studio-300 hover:bg-studio-800'
-                  }`}
-                >
-                  <span className="truncate">{ds.name}</span>
-                  <button
-                    onClick={e => {
-                      e.stopPropagation();
-                      handleDeleteDataSource(idx);
-                    }}
-                    className="opacity-60 hover:opacity-100 hover:text-red-300"
+              {dataSources.map((ds, idx) => {
+                const isArray = Array.isArray(ds.data);
+                return (
+                  <div
+                    key={ds.name}
+                    onClick={() => setSelectedIdx(idx)}
+                    className={`flex items-center justify-between px-2.5 py-1.5 rounded cursor-pointer text-xs ${
+                      selectedIdx === idx
+                        ? 'bg-blue-600 text-white font-medium'
+                        : 'text-studio-300 hover:bg-studio-800'
+                    }`}
                   >
-                    <Trash2 size={12} />
-                  </button>
-                </div>
-              ))}
+                    <div className="flex items-center gap-1.5 truncate">
+                      <span className="truncate">{ds.name}</span>
+                      <span className={`text-[9px] px-1 py-0.2 rounded font-mono ${
+                        selectedIdx === idx ? 'bg-blue-700/70 text-blue-100' : 'bg-studio-800 text-studio-400'
+                      }`}>
+                        {Array.isArray(ds.data) ? `[${ds.data.length}]` : '{}'}
+                      </span>
+                    </div>
+                    <button
+                      onClick={e => {
+                        e.stopPropagation();
+                        handleDeleteDataSource(idx);
+                      }}
+                      className="opacity-60 hover:opacity-100 hover:text-red-300 ml-1"
+                    >
+                      <Trash2 size={12} />
+                    </button>
+                  </div>
+                );
+              })}
             </div>
 
-            <button
-              onClick={handleAddDataSource}
-              className="w-full mt-2 py-1.5 bg-studio-800 hover:bg-studio-700 text-studio-200 text-xs rounded font-medium flex items-center justify-center gap-1 transition"
-            >
-              <Plus size={14} /> Add Source
-            </button>
+            <div className="space-y-1 mt-2">
+              <button
+                onClick={handleAddArrayDataSource}
+                className="w-full py-1.5 bg-blue-600/20 hover:bg-blue-600/30 border border-blue-500/30 text-blue-300 text-xs rounded font-medium flex items-center justify-center gap-1 transition"
+              >
+                <Plus size={14} /> Add Array Data
+              </button>
+              <button
+                onClick={handleAddDataSource}
+                className="w-full py-1.5 bg-studio-800 hover:bg-studio-700 text-studio-200 text-xs rounded font-medium flex items-center justify-center gap-1 transition"
+              >
+                <Plus size={14} /> Add Object Data
+              </button>
+            </div>
           </div>
 
           {/* Right Editor Area */}
@@ -126,11 +164,17 @@ export const DataSourcesModal: React.FC<{ isOpen: boolean; onClose: () => void }
                       className="bg-studio-950 border border-studio-800 rounded px-2 py-1 text-white text-xs font-mono w-48 block mt-1"
                     />
                   </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-[11px] px-2 py-0.5 rounded bg-studio-800 text-studio-300 font-mono">
+                      Type: {Array.isArray(currentDs.data) ? `Array (${currentDs.data.length} items)` : 'Object'}
+                    </span>
+                  </div>
                 </div>
 
                 <div className="flex-1 flex flex-col">
                   <label className="text-xs text-studio-400 mb-1">JSON Data Payload</label>
                   <textarea
+                    key={currentDs.name}
                     defaultValue={JSON.stringify(currentDs.data, null, 2)}
                     onChange={e => handleJsonChange(e.target.value)}
                     className="flex-1 w-full bg-studio-950 border border-studio-800 rounded p-3 text-xs font-mono text-studio-200 outline-none resize-none focus:border-blue-500"

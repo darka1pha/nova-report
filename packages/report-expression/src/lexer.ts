@@ -38,7 +38,18 @@ export class Lexer {
       }
 
       // Number literal
-      if (this.isDigit(char) || (char === '.' && this.isDigit(this.peek(1)))) {
+      const prevTok = tokens.length > 0 ? tokens[tokens.length - 1] : undefined;
+      const isMemberDot =
+        char === '.' &&
+        Boolean(
+          prevTok &&
+            (prevTok.type === 'IDENTIFIER' ||
+              prevTok.type === 'NUMBER' ||
+              prevTok.value === ']' ||
+              prevTok.value === ')')
+        );
+
+      if (this.isDigit(char) || (!isMemberDot && char === '.' && this.isDigit(this.peek(1)))) {
         tokens.push(this.readNumber());
         continue;
       }

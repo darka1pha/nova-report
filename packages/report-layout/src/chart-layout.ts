@@ -6,7 +6,7 @@
  */
 
 import type { ChartElement, ChartDataPoint } from '@report/schema';
-import type { ReportDataContext } from '@report/data';
+import { resolvePathValue, type ReportDataContext } from '@report/data';
 
 export interface BarShape {
   x: number;
@@ -74,16 +74,29 @@ export function resolveChartData(
   element: ChartElement,
   context: ReportDataContext
 ): ChartDataPoint[] {
-  if (element.dataSource && context.data) {
-    const rawList = context.data[element.dataSource];
+  if (context.data) {
+    let rawList: any = undefined;
+    if (element.dataSource) {
+      rawList = resolvePathValue(context.data, element.dataSource);
+    } else if (Array.isArray(context.data)) {
+      rawList = context.data;
+    }
     if (Array.isArray(rawList) && rawList.length > 0) {
       const catField = element.categoryField || 'label';
       const valField = element.valueField || 'value';
 
-      return rawList.map(item => ({
-        label: String(item[catField] ?? ''),
-        value: Number(item[valField]) || 0
-      }));
+      return rawList.map(item => {
+        if (typeof item === 'object' && item !== null) {
+          return {
+            label: String(item[catField] ?? item.name ?? item.title ?? ''),
+            value: Number(item[valField] ?? item.count ?? item.amount ?? 0) || 0
+          };
+        }
+        return {
+          label: String(item),
+          value: Number(item) || 0
+        };
+      });
     }
   }
 

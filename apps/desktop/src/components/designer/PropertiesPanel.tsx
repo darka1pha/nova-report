@@ -35,7 +35,7 @@ import {
   Plus
 } from 'lucide-react';
 import { FieldPickerDropdown } from './FieldPickerDropdown';
-import { discoverReportDataSchema, previewExpressionTemplate } from '@report/engine';
+import { discoverReportDataSchema, previewExpressionTemplate, detectPaperSize, getPaperDimensions, type PaperSizeName } from '@report/engine';
 
 export const PropertiesPanel: React.FC = () => {
   const {
@@ -68,6 +68,14 @@ export const PropertiesPanel: React.FC = () => {
       }
     }
   }
+
+  const isLandscape = report.page.orientation === 'landscape';
+  const pageWidthMm = isLandscape ? Math.max(report.page.width, report.page.height) : report.page.width;
+  const pageHeightMm = isLandscape ? Math.min(report.page.width, report.page.height) : report.page.height;
+  const margins = report.page.margins;
+  const totalSectionsHeightMm = report.sections.reduce((sum, s) => sum + s.height, 0);
+  const printableHeightMm = Math.max(0, pageHeightMm - margins.top - margins.bottom);
+  const unallocatedBodyMm = Math.max(0, printableHeightMm - totalSectionsHeightMm);
 
   const handleUpdateStyle = (partialStyle: any) => {
     if (!selectedElement) return;
@@ -154,6 +162,39 @@ export const PropertiesPanel: React.FC = () => {
                     className="w-full bg-studio-950 border border-studio-800 rounded px-2 py-1 text-studio-200 text-xs"
                   />
                 </div>
+              </div>
+
+              {/* Quick Fill Dimension Actions */}
+              <div className="flex items-center gap-1.5 pt-1">
+                <button
+                  type="button"
+                  onClick={() => {
+                    const printableW = Math.round((pageWidthMm - margins.left - margins.right) * 10) / 10;
+                    updateElement(selectedElement!.id, {
+                      x: margins.left,
+                      width: printableW
+                    });
+                  }}
+                  className="flex-1 py-1 px-1.5 bg-studio-950 hover:bg-studio-800 text-[10px] text-studio-300 hover:text-white rounded border border-studio-800 transition text-center cursor-pointer flex items-center justify-center gap-1"
+                  title="Expand element width to fill printable page width"
+                >
+                  <span>⤢ Fill Width</span>
+                </button>
+                {currentSection && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const availH = Math.round((currentSection!.height - selectedElement!.y) * 10) / 10;
+                      updateElement(selectedElement!.id, {
+                        height: Math.max(5, availH)
+                      });
+                    }}
+                    className="flex-1 py-1 px-1.5 bg-studio-950 hover:bg-studio-800 text-[10px] text-studio-300 hover:text-white rounded border border-studio-800 transition text-center cursor-pointer flex items-center justify-center gap-1"
+                    title="Expand element height to fill section bottom"
+                  >
+                    <span>⤢ Fill Height</span>
+                  </button>
+                )}
               </div>
 
               {/* Rotation Stepper and Slider */}
@@ -1010,7 +1051,37 @@ export const PropertiesPanel: React.FC = () => {
             </div>
 
             <div>
-              <label className="text-[10px] text-studio-500">Section Height (mm)</label>
+              <div className="flex items-center justify-between mb-1">
+                <label className="text-[10px] text-studio-500">Section Height (mm)</label>
+                {unallocatedBodyMm > 1 && (
+                  <button
+                    onClick={() => {
+                      const newH = Math.round((currentSection!.height + unallocatedBodyMm) * 10) / 10;
+                      const primaryTable = currentSection!.elements.find(el => el.type === 'table');
+                      updateReport(prev => ({
+                        ...prev,
+                        sections: prev.sections.map(s => {
+                          if (s.id !== currentSection!.id) return s;
+                          return {
+                            ...s,
+                            height: newH,
+                            elements: s.elements.map(el =>
+                              primaryTable && el.id === primaryTable.id
+                                ? { ...el, height: Math.round((el.height + unallocatedBodyMm) * 10) / 10 }
+                                : el
+                            )
+                          };
+                        })
+                      }));
+                    }}
+                    className="text-[10px] text-blue-400 hover:text-blue-300 font-medium flex items-center gap-1 cursor-pointer bg-blue-950/60 hover:bg-blue-900/60 px-1.5 py-0.5 rounded border border-blue-800/80 transition"
+                    title={`Expand ${currentSection.name} to fill unallocated page space (+${unallocatedBodyMm.toFixed(0)}mm)`}
+                  >
+                    <Maximize2 size={10} />
+                    <span>Fill Page (+{unallocatedBodyMm.toFixed(0)}mm)</span>
+                  </button>
+                )}
+              </div>
               <input
                 type="number"
                 value={currentSection.height}
@@ -1062,6 +1133,63 @@ export const PropertiesPanel: React.FC = () => {
                 Keep Together
               </label>
             </div>
+
+            {currentSection.type === 'detail' && (
+              <div className="space-y-2 pt-2 border-t border-studio-800">
+                <div className="font-semibold text-studio-400 text-[10px] uppercase tracking-wider">
+                  Detail Band Data Binding
+                </div>
+
+                <div>
+                  <label className="text-[10px] text-studio-500">Array Data Source</label>
+                  <select
+                    value={currentSection.dataSource || ''}
+                    onChange={e => {
+                      const val = e.target.value;
+                      updateReport(prev => ({
+                        ...prev,
+                        sections: prev.sections.map(s =>
+                          s.id === currentSection!.id
+                            ? { ...s, dataSource: val || undefined }
+                            : s
+                        )
+                      }));
+                    }}
+                    className="w-full bg-studio-950 border border-studio-800 rounded px-2 py-1 text-studio-200 text-xs"
+                  >
+                    <option value="">Default (Top-Level Data / First Array)</option>
+                    {report.dataSources.map(ds => (
+                      <option key={ds.name} value={ds.name}>
+                        {ds.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <label className="flex items-center gap-2 text-studio-300 cursor-pointer text-xs">
+                  <input
+                    type="checkbox"
+                    checked={currentSection.repeatForEachRecord ?? Boolean(currentSection.dataSource)}
+                    onChange={e => {
+                      const checked = e.target.checked;
+                      updateReport(prev => ({
+                        ...prev,
+                        sections: prev.sections.map(s =>
+                          s.id === currentSection!.id
+                            ? { ...s, repeatForEachRecord: checked }
+                            : s
+                        )
+                      }));
+                    }}
+                    className="rounded bg-studio-950 border-studio-800 text-blue-600"
+                  />
+                  Repeat Section for Each Record
+                </label>
+                <div className="text-[10px] text-studio-500">
+                  Repeats this entire section and its elements for each item in the array, using item fields (e.g. {'{{name}}'} or {'{{item.name}}'}).
+                </div>
+              </div>
+            )}
           </div>
         ) : (
           /* 3. Global Page Settings */
@@ -1080,6 +1208,39 @@ export const PropertiesPanel: React.FC = () => {
               />
             </div>
 
+            <div>
+              <label className="text-[10px] text-studio-500">Paper Size Preset</label>
+              <select
+                value={report.page.paperSize || detectPaperSize(report.page.width, report.page.height, report.page.unit)}
+                onChange={e => {
+                  const val = e.target.value as PaperSizeName;
+                  if (val === 'Custom') {
+                    updateReport(prev => ({ ...prev, page: { ...prev.page, paperSize: 'Custom' } }));
+                  } else {
+                    const dims = getPaperDimensions(val, report.page.orientation, report.page.unit);
+                    updateReport(prev => ({
+                      ...prev,
+                      page: {
+                        ...prev.page,
+                        paperSize: val,
+                        width: dims.width,
+                        height: dims.height
+                      }
+                    }));
+                  }
+                }}
+                className="w-full bg-studio-950 border border-studio-800 rounded px-2 py-1 text-studio-200 text-xs"
+              >
+                <option value="A4">A4 (210 × 297 mm)</option>
+                <option value="A3">A3 (297 × 420 mm)</option>
+                <option value="A5">A5 (148 × 210 mm)</option>
+                <option value="Letter">Letter (8.5 × 11 in / 215.9 × 279.4 mm)</option>
+                <option value="Legal">Legal (8.5 × 14 in / 215.9 × 355.6 mm)</option>
+                <option value="Tabloid">Tabloid (11 × 17 in / 279.4 × 431.8 mm)</option>
+                <option value="Custom">Custom Dimensions</option>
+              </select>
+            </div>
+
             <div className="grid grid-cols-2 gap-2">
               <div>
                 <label className="text-[10px] text-studio-500">Page Width ({report.page.unit})</label>
@@ -1087,7 +1248,10 @@ export const PropertiesPanel: React.FC = () => {
                   type="number"
                   value={report.page.width}
                   onChange={e =>
-                    updateReport(prev => ({ ...prev, page: { ...prev.page, width: Number(e.target.value) } }))
+                    updateReport(prev => ({
+                      ...prev,
+                      page: { ...prev.page, width: Number(e.target.value), paperSize: 'Custom' }
+                    }))
                   }
                   className="w-full bg-studio-950 border border-studio-800 rounded px-2 py-1 text-studio-200 text-xs"
                 />
@@ -1098,7 +1262,10 @@ export const PropertiesPanel: React.FC = () => {
                   type="number"
                   value={report.page.height}
                   onChange={e =>
-                    updateReport(prev => ({ ...prev, page: { ...prev.page, height: Number(e.target.value) } }))
+                    updateReport(prev => ({
+                      ...prev,
+                      page: { ...prev.page, height: Number(e.target.value), paperSize: 'Custom' }
+                    }))
                   }
                   className="w-full bg-studio-950 border border-studio-800 rounded px-2 py-1 text-studio-200 text-xs"
                 />
@@ -1109,12 +1276,20 @@ export const PropertiesPanel: React.FC = () => {
               <label className="text-[10px] text-studio-500">Orientation</label>
               <select
                 value={report.page.orientation}
-                onChange={e =>
+                onChange={e => {
+                  const nextOrient = e.target.value as 'portrait' | 'landscape';
+                  const currentSize = report.page.paperSize || detectPaperSize(report.page.width, report.page.height, report.page.unit);
+                  const dims = getPaperDimensions(currentSize, nextOrient, report.page.unit);
                   updateReport(prev => ({
                     ...prev,
-                    page: { ...prev.page, orientation: e.target.value as any }
-                  }))
-                }
+                    page: {
+                      ...prev.page,
+                      orientation: nextOrient,
+                      width: dims.width,
+                      height: dims.height
+                    }
+                  }));
+                }}
                 className="w-full bg-studio-950 border border-studio-800 rounded px-2 py-1 text-studio-200 text-xs"
               >
                 <option value="portrait">Portrait</option>

@@ -28,27 +28,53 @@ export const Toolbox: React.FC = () => {
 
   const targetSectionId = selectedSectionId || report.sections[1]?.id || report.sections[0]?.id || 'sec-detail';
 
+  const getSpawnPosition = (w: number, h: number) => {
+    const sec = report.sections.find(s => s.id === targetSectionId);
+    if (!sec || sec.elements.length === 0) {
+      return { x: 10, y: 10 };
+    }
+    const occupied = sec.elements.some(e => Math.abs(e.x - 10) < 8 && Math.abs(e.y - 10) < 8);
+    if (!occupied) {
+      return { x: 10, y: 10 };
+    }
+    const maxBottom = Math.max(...sec.elements.map(e => e.y + e.height));
+    if (maxBottom + h + 4 <= sec.height) {
+      return { x: 10, y: Math.round((maxBottom + 4) * 10) / 10 };
+    }
+    const count = sec.elements.length;
+    const offset = (count * 6) % 36;
+    return {
+      x: 10 + offset,
+      y: Math.max(5, Math.min(Math.max(5, sec.height - h - 2), 10 + offset))
+    };
+  };
+
   const handleAddText = () => {
-    addElement(targetSectionId, createDefaultTextElement());
+    const pos = getSpawnPosition(60, 10);
+    addElement(targetSectionId, createDefaultTextElement(pos));
   };
 
   const handleAddRectangle = () => {
-    addElement(targetSectionId, createDefaultShapeElement({ shapeType: 'rectangle' }));
+    const pos = getSpawnPosition(50, 30);
+    addElement(targetSectionId, createDefaultShapeElement({ shapeType: 'rectangle', ...pos }));
   };
 
   const handleAddCircle = () => {
+    const pos = getSpawnPosition(30, 30);
     addElement(
       targetSectionId,
       createDefaultShapeElement({
         name: 'Circle',
         shapeType: 'circle',
         width: 30,
-        height: 30
+        height: 30,
+        ...pos
       })
     );
   };
 
   const handleAddLine = () => {
+    const pos = getSpawnPosition(60, 1);
     addElement(
       targetSectionId,
       createDefaultShapeElement({
@@ -56,22 +82,25 @@ export const Toolbox: React.FC = () => {
         shapeType: 'line',
         width: 60,
         height: 1,
-        strokeWidth: 0.5
+        strokeWidth: 0.5,
+        ...pos
       })
     );
   };
 
   const handleAddTable = () => {
-    addElement(targetSectionId, createDefaultTableElement());
+    const pos = getSpawnPosition(180, 40);
+    addElement(targetSectionId, createDefaultTableElement(pos));
   };
 
   const handleAddImage = () => {
+    const pos = getSpawnPosition(40, 25);
     addElement(targetSectionId, {
       id: `elem-img-${Math.random().toString(36).substring(2, 9)}`,
       name: 'Logo Image',
       type: 'image',
-      x: 10,
-      y: 10,
+      x: pos.x,
+      y: pos.y,
       width: 40,
       height: 25,
       src: 'https://via.placeholder.com/150x80.png?text=Company+Logo',
@@ -80,12 +109,13 @@ export const Toolbox: React.FC = () => {
   };
 
   const handleAddBarcode = () => {
+    const pos = getSpawnPosition(50, 18);
     addElement(targetSectionId, {
       id: `elem-bar-${Math.random().toString(36).substring(2, 9)}`,
       name: 'Barcode',
       type: 'barcode',
-      x: 10,
-      y: 10,
+      x: pos.x,
+      y: pos.y,
       width: 50,
       height: 18,
       value: 'INV-100293',
@@ -97,12 +127,13 @@ export const Toolbox: React.FC = () => {
   };
 
   const handleAddQRCode = () => {
+    const pos = getSpawnPosition(25, 25);
     addElement(targetSectionId, {
       id: `elem-qr-${Math.random().toString(36).substring(2, 9)}`,
       name: 'QR Code',
       type: 'qrcode',
-      x: 10,
-      y: 10,
+      x: pos.x,
+      y: pos.y,
       width: 25,
       height: 25,
       value: 'https://example.com/verify',
@@ -113,17 +144,20 @@ export const Toolbox: React.FC = () => {
   };
 
   const handleAddBarChart = () => {
+    const pos = getSpawnPosition(90, 55);
     addElement(
       targetSectionId,
       createDefaultChartElement({
         name: 'Bar Chart',
         chartType: 'bar',
-        title: 'Sales Overview'
+        title: 'Sales Overview',
+        ...pos
       })
     );
   };
 
   const handleAddPieChart = () => {
+    const pos = getSpawnPosition(65, 65);
     addElement(
       targetSectionId,
       createDefaultChartElement({
@@ -136,18 +170,21 @@ export const Toolbox: React.FC = () => {
           { label: 'Enterprise', value: 45 },
           { label: 'Consumer', value: 30 },
           { label: 'SMB', value: 25 }
-        ]
+        ],
+        ...pos
       })
     );
   };
 
   const handleAddLineChart = () => {
+    const pos = getSpawnPosition(90, 55);
     addElement(
       targetSectionId,
       createDefaultChartElement({
         name: 'Trend Line',
         chartType: 'line',
-        title: 'Growth Metric'
+        title: 'Growth Metric',
+        ...pos
       })
     );
   };

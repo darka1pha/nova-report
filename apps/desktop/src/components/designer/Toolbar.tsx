@@ -28,7 +28,7 @@ import {
   HelpCircle,
   Keyboard
 } from 'lucide-react';
-import { exportReport } from '@report/engine';
+import { exportReport, detectPaperSize, getPaperDimensions, type PaperSizeName } from '@report/engine';
 
 export const Toolbar: React.FC<{
   onOpenTemplates: () => void;
@@ -56,8 +56,47 @@ export const Toolbar: React.FC<{
     deleteSelectedElements,
     alignSelectedElements,
     newReport,
-    loadTemplate
+    loadTemplate,
+    updateReport
   } = useDesigner();
+
+  const currentPaperSize = React.useMemo(() => {
+    return report.page.paperSize || detectPaperSize(report.page.width, report.page.height, report.page.unit);
+  }, [report.page.width, report.page.height, report.page.unit, report.page.paperSize]);
+
+  const handlePaperSizeChange = (name: PaperSizeName) => {
+    if (name === 'Custom') {
+      updateReport(prev => ({
+        ...prev,
+        page: { ...prev.page, paperSize: 'Custom' }
+      }));
+      return;
+    }
+    const dims = getPaperDimensions(name, report.page.orientation, report.page.unit);
+    updateReport(prev => ({
+      ...prev,
+      page: {
+        ...prev.page,
+        paperSize: name,
+        width: dims.width,
+        height: dims.height
+      }
+    }));
+  };
+
+  const toggleOrientation = () => {
+    const nextOrient = report.page.orientation === 'landscape' ? 'portrait' : 'landscape';
+    const dims = getPaperDimensions(currentPaperSize, nextOrient, report.page.unit);
+    updateReport(prev => ({
+      ...prev,
+      page: {
+        ...prev.page,
+        orientation: nextOrient,
+        width: dims.width,
+        height: dims.height
+      }
+    }));
+  };
 
   const [exporting, setExporting] = useState(false);
 
@@ -340,6 +379,36 @@ export const Toolbar: React.FC<{
             title="Zoom In"
           >
             <ZoomIn size={13} />
+          </button>
+        </div>
+
+        {/* Paper Size & Orientation Selector */}
+        <div className="flex items-center gap-1.5 bg-studio-950 px-2 py-1 rounded border border-studio-800 text-xs">
+          <FileText size={13} className="text-blue-400 shrink-0" />
+          <select
+            value={currentPaperSize}
+            onChange={e => handlePaperSizeChange(e.target.value as PaperSizeName)}
+            className="bg-transparent text-[11px] font-medium text-studio-200 outline-none cursor-pointer"
+            title="Choose standard paper size (A3, A4, A5, Letter, Legal)"
+          >
+            <option value="A4" className="bg-studio-900">A4 (210×297 mm)</option>
+            <option value="A3" className="bg-studio-900">A3 (297×420 mm)</option>
+            <option value="A5" className="bg-studio-900">A5 (148×210 mm)</option>
+            <option value="Letter" className="bg-studio-900">Letter (8.5×11")</option>
+            <option value="Legal" className="bg-studio-900">Legal (8.5×14")</option>
+            <option value="Tabloid" className="bg-studio-900">Tabloid (11×17")</option>
+            <option value="Custom" className="bg-studio-900">Custom</option>
+          </select>
+          <button
+            onClick={toggleOrientation}
+            className={`px-1.5 py-0.5 rounded text-[10px] font-mono transition border ${
+              report.page.orientation === 'landscape'
+                ? 'bg-blue-600/30 text-blue-300 border-blue-500/40 font-medium'
+                : 'bg-studio-900 text-studio-400 border-studio-800 hover:text-white'
+            }`}
+            title={`Orientation: ${report.page.orientation}. Click to toggle.`}
+          >
+            {report.page.orientation === 'landscape' ? 'Land' : 'Port'}
           </button>
         </div>
       </div>

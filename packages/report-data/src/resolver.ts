@@ -5,7 +5,7 @@ import { DataSourceRegistry } from './sources.js';
 
 export interface ResolveDataOptions {
   report: ReportDefinition;
-  data?: Record<string, any>;
+  data?: Record<string, any> | any[];
   parameters?: Record<string, any>;
   registry?: DataSourceRegistry;
 }
@@ -33,7 +33,20 @@ export async function resolveReportData(options: ResolveDataOptions): Promise<Re
   }
 
   // 2. Resolve data sources
-  const resolvedData: Record<string, any> = { ...data };
+  let resolvedData: Record<string, any>;
+  if (Array.isArray(data)) {
+    resolvedData = {
+      data,
+      items: data,
+      rows: data
+    };
+    if (report.dataSources?.[0]?.name) {
+      resolvedData[report.dataSources[0].name] = data;
+    }
+  } else {
+    resolvedData = { ...data };
+  }
+
   for (const dsDef of report.dataSources || []) {
     // If not already provided by runtime data
     if (!(dsDef.name in resolvedData)) {
@@ -45,6 +58,16 @@ export async function resolveReportData(options: ResolveDataOptions): Promise<Re
         console.warn(`Could not resolve data source '${dsDef.name}':`, err);
         resolvedData[dsDef.name] = dsDef.data || null;
       }
+    }
+  }
+
+  // Provide convenient aliases for tables and expressions if an array exists
+  if (!resolvedData.items || !Array.isArray(resolvedData.items)) {
+    const arrayEntries = Object.entries(resolvedData).filter(([_, v]) => Array.isArray(v));
+    if (arrayEntries.length > 0) {
+      resolvedData.items = arrayEntries[0]![1];
+      if (!resolvedData.data) resolvedData.data = arrayEntries[0]![1];
+      if (!resolvedData.rows) resolvedData.rows = arrayEntries[0]![1];
     }
   }
 

@@ -81,6 +81,7 @@ export const DataExplorerPanel: React.FC<{ onOpenDataSources: () => void }> = ({
 
   // Handle clicking a field
   const handleFieldClick = (field: DiscoveredField) => {
+    // Only bind into selected element if it is a placeholder or barcode/qr without value
     if (selectedElementIds.length === 1) {
       const targetId = selectedElementIds[0]!;
       for (const sec of report.sections) {
@@ -88,9 +89,11 @@ export const DataExplorerPanel: React.FC<{ onOpenDataSources: () => void }> = ({
         if (el) {
           if (el.type === 'text') {
             const currentText = (el as any).text || '';
-            const newText = currentText ? `${currentText} ${field.expression}` : field.expression;
-            updateElement(el.id, { text: newText } as any);
-            return;
+            // Only overwrite if it is a default placeholder or empty
+            if (!currentText || currentText === 'New Text') {
+              updateElement(el.id, { text: field.expression } as any);
+              return;
+            }
           } else if (el.type === 'barcode' || el.type === 'qrcode') {
             updateElement(el.id, { value: field.expression } as any);
             return;
@@ -105,13 +108,22 @@ export const DataExplorerPanel: React.FC<{ onOpenDataSources: () => void }> = ({
 
   // Add field as text element on canvas
   const handleAddFieldAsText = (field: DiscoveredField) => {
+    const sec = report.sections.find(s => s.id === targetSectionId);
+    let startY = 5;
+    if (sec && sec.elements.length > 0) {
+      const maxBottom = Math.max(...sec.elements.map(e => e.y + e.height));
+      if (maxBottom + 10 <= sec.height) {
+        startY = Math.round((maxBottom + 2) * 10) / 10;
+      }
+    }
+
     const newElem = createDefaultTextElement({
       name: `${field.name} Label`,
       text: `${field.name}: ${field.expression}`,
       width: 70,
       height: 8,
       x: report.page.margins.left,
-      y: 5
+      y: startY
     });
     addElement(targetSectionId, newElem);
   };

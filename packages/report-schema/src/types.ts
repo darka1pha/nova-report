@@ -56,6 +56,15 @@ export interface PageMargins {
   left: number;
 }
 
+export type PaperSizeName = 'A3' | 'A4' | 'A5' | 'Letter' | 'Legal' | 'Tabloid' | 'Custom';
+
+export interface PaperDimensions {
+  name: PaperSizeName;
+  label: string;
+  widthMm: number;
+  heightMm: number;
+}
+
 export interface PageSettings {
   width: number;
   height: number;
@@ -63,7 +72,9 @@ export interface PageSettings {
   orientation: 'portrait' | 'landscape';
   margins: PageMargins;
   direction?: TextDirection;
+  paperSize?: PaperSizeName;
 }
+
 
 export type SectionType =
   | 'pageHeader'
@@ -88,6 +99,8 @@ export interface SectionDefinition {
   keepTogether?: boolean;
   condition?: string; // visibility expression
   groupBy?: string; // expression for groupHeader/groupFooter
+  dataSource?: string; // e.g. "employees" to repeat section for each array item
+  repeatForEachRecord?: boolean; // repeat detail section for each record in bound array
   elements: ReportElement[];
 }
 

@@ -100,6 +100,16 @@ export function discoverReportDataSchema(
               });
             }
           }
+        } else if (sampleItem !== undefined && sampleItem !== null) {
+          const t = detectType(sampleItem);
+          itemFields.push({
+            key: 'item',
+            itemPath: 'item',
+            expression: '{{item}}',
+            type: t as any,
+            sample: sampleItem,
+            formattedSample: formatSampleValue(sampleItem)
+          });
         }
 
         collections.push({
@@ -110,6 +120,36 @@ export function discoverReportDataSchema(
           sampleItems: obj.slice(0, 5),
           itemFields
         });
+
+        // Expose array count/length field
+        fields.push({
+          path: `${currentPath}.length`,
+          name: `${currentPath.split('.').pop() || currentPath} Count`,
+          expression: `{{COUNT(${currentPath})}}`,
+          source: ds.name,
+          type: 'number',
+          sample: obj.length,
+          formattedSample: String(obj.length)
+        });
+
+        // Expose first-item scalar access for single cards or summaries
+        if (sampleItem && typeof sampleItem === 'object') {
+          for (const key of Object.keys(sampleItem)) {
+            const val = sampleItem[key];
+            const t = detectType(val);
+            if (t !== 'array' && t !== 'object') {
+              fields.push({
+                path: `${currentPath}[0].${key}`,
+                name: `${key} (1st)`,
+                expression: `{{${currentPath}.0.${key}}}`,
+                source: ds.name,
+                type: t,
+                sample: val,
+                formattedSample: formatSampleValue(val)
+              });
+            }
+          }
+        }
         return;
       }
 

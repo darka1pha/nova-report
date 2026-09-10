@@ -9,7 +9,7 @@ import { PageRenderer } from './PageRenderer.js';
 
 export interface ReportViewerProps {
   report: ReportDefinition | string;
-  data?: Record<string, any>;
+  data?: Record<string, any> | any[];
   parameters?: Record<string, any>;
   toolbar?: boolean;
   initialZoom?: number;

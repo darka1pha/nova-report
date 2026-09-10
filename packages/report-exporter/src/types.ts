@@ -2,7 +2,7 @@ import type { RenderedDocument } from '@report/core';
 
 export interface ExportOptions {
   format: 'pdf' | 'docx' | 'xlsx' | 'html' | 'svg' | 'png' | string;
-  data?: Record<string, any>;
+  data?: Record<string, any> | any[];
   parameters?: Record<string, any>;
   title?: string;
   author?: string;

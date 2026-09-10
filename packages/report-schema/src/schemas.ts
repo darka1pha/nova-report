@@ -59,7 +59,8 @@ export const PageSettingsSchema = z.object({
   unit: UnitSchema,
   orientation: z.enum(['portrait', 'landscape']),
   margins: PageMarginsSchema,
-  direction: TextDirectionSchema.optional()
+  direction: TextDirectionSchema.optional(),
+  paperSize: z.enum(['A3', 'A4', 'A5', 'Letter', 'Legal', 'Tabloid', 'Custom']).optional()
 });
 
 export const BaseElementSchema = z.object({
@@ -220,6 +221,8 @@ export const SectionDefinitionSchema = z.object({
   keepTogether: z.boolean().optional(),
   condition: z.string().optional(),
   groupBy: z.string().optional(),
+  dataSource: z.string().optional(),
+  repeatForEachRecord: z.boolean().optional(),
   elements: z.array(ReportElementSchema)
 });
 
